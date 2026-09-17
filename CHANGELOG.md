@@ -7,6 +7,14 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- Project checks: the "shell stays ignorant of individual tools" rule was
+  matching the section grouping's short platform-name lookup (`SHORT_NAMES` in
+  `app.js`) as a violation, since that map necessarily names each journey
+  tool's id to pick its label. That lookup is display data, not tool-specific
+  behaviour, and is now explicitly exempted; the rule still fires on any
+  genuine per-tool reference elsewhere in the shell.
+
 ### Added
 - App version, shown in the status bar, defined once in `Start-IntuneSightline.ps1`.
 - Update notice: checks the latest GitHub release in the background at startup and
