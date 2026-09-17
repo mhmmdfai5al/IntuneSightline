@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Project checks
+        shell: pwsh
+        run: ./tests/Invoke-Checks.ps1
+
+      - name: Build the archive
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME}"
+          mkdir -p build/IntuneSightline
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'build' \
+                --exclude 'tests' --exclude 'docs' . build/IntuneSightline/
+          cd build && zip -qr "../IntuneSightline-${version}.zip" IntuneSightline
+          cd .. && ls -la IntuneSightline-*.zip
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: IntuneSightline-*.zip
+          generate_release_notes: true
+          body: |
+            Download the zip below, extract it, and run:
+
+            ```powershell
+            ./Start-IntuneSightline.ps1
+            ```
+
+            Requires PowerShell 7. Nothing else to install.
+
+            See CHANGELOG.md for what changed.

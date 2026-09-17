@@ -1,0 +1,65 @@
+{
+  "id": "change-history",
+  "name": "Change history",
+  "description": "Who changed what and when, from the Intune audit log. Includes deletions and renames.",
+  "note": "Intune's audit API can only filter on date and activity type. A policy or account filter is applied after collection, so the run time is set by how many events happened in the window, not by how many match. A large tenant can produce well over 100,000 events in a week, and reading them takes minutes. Narrow the dates or set an activity type to make it faster.",
+  "category": "Audit",
+  "version": "1.4.0",
+  "entryPoint": "Invoke-Tool.ps1",
+  "requiredScopes": [
+    "DeviceManagementApps.Read.All",
+    "DeviceManagementConfiguration.Read.All"
+  ],
+  "fields": [
+    {
+      "id": "fromDate",
+      "type": "text",
+      "label": "From date",
+      "placeholder": "2026-08-28",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "patternMessage": "Use YYYY-MM-DD",
+      "hint": "Graph holds two years of audit events. Leave blank for seven days ago."
+    },
+    {
+      "id": "toDate",
+      "type": "text",
+      "label": "To date",
+      "placeholder": "2026-09-04",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "patternMessage": "Use YYYY-MM-DD",
+      "hint": "Inclusive. Leave blank for now."
+    },
+    {
+      "id": "activityType",
+      "type": "text",
+      "label": "Activity type (optional)",
+      "placeholder": "Delete DeviceConfiguration",
+      "hint": "Filtered by Intune itself, so this is the one option that genuinely makes the query smaller. Enter a wrong value and the valid list is returned."
+    },
+    {
+      "id": "objectName",
+      "type": "text",
+      "label": "Policy name or ID (optional)",
+      "placeholder": "leave blank to see everything that changed",
+      "hint": "An ID is exact and survives renames. A name is matched as recorded at the time, so a renamed policy may have history under both."
+    },
+    {
+      "id": "userPrincipalName",
+      "type": "text",
+      "label": "Changed by (optional)",
+      "placeholder": "someone@contoso.com",
+      "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+      "patternMessage": "Enter a full user principal name, such as someone@contoso.com",
+      "hint": "Filled alongside a policy above, both must match."
+    },
+    {
+      "id": "resolveRoles",
+      "type": "boolean",
+      "label": "Look up each actor's current Intune role",
+      "default": true,
+      "hint": "Roles are read as they are now, not as they were at the time of the change. Needs DeviceManagementRBAC.Read.All."
+    }
+  ],
+  "order": 1,
+  "shortDescription": "who changed what and when, including deletions"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "macos-journey",
+  "name": "macOS device journey",
+  "description": "How a Mac was enrolled, the groups that resulted, and everything that reaches it.",
+  "note": "Covers every enrolment route - Automated Device Enrolment, Apple Configurator, direct enrolment, device enrolment manager and Company Portal. A Mac enrolled through Setup Assistant legacy may have no Microsoft Entra device object at all: the report still runs and explains what group-targeted policy cannot reach. Devices managed by app protection policy alone are not enrolled in Intune and are out of scope.",
+  "category": "Devices",
+  "order": 3,
+  "version": "1.0.0",
+  "entryPoint": "Invoke-Tool.ps1",
+  "requiredScopes": [
+    "DeviceManagementManagedDevices.Read.All",
+    "DeviceManagementServiceConfig.Read.All",
+    "DeviceManagementConfiguration.Read.All",
+    "DeviceManagementApps.Read.All",
+    "Group.Read.All"
+  ],
+  "fields": [
+    {
+      "id": "devices",
+      "type": "text",
+      "label": "Device name or serial number, or two separated by a comma",
+      "required": true,
+      "placeholder": "MAC-0417, or C02XY1234ABC",
+      "hint": "One device to trace its journey, two to compare them. Exact match, case-insensitive."
+    },
+    {
+      "id": "writeHtml",
+      "type": "boolean",
+      "label": "Also write an interactive HTML report",
+      "default": true,
+      "hint": "A single self-contained file. Opens in any browser, works offline."
+    },
+    {
+      "id": "includeApps",
+      "type": "boolean",
+      "label": "Include app assignments",
+      "default": false
+    }
+  ]
+}

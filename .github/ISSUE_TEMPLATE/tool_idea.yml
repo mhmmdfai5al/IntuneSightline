@@ -1,0 +1,29 @@
+name: Tool idea
+description: A question the admin center answers badly
+labels: [idea]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: The question you are trying to answer
+      description: >
+        Phrase it as the question, not the feature. "Which machines are on the
+        deferred ring and how far behind are they" rather than "an update report".
+    validations:
+      required: true
+
+  - type: textarea
+    id: today
+    attributes:
+      label: How you answer it today
+      description: Which blades, exports or scripts, and where it falls down.
+    validations:
+      required: true
+
+  - type: textarea
+    id: moment
+    attributes:
+      label: When you reach for it
+      description: >
+        A tool earns its place if there is a specific moment it gets used -
+        before deleting a group, during an incident, at a change window.

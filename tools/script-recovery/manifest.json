@@ -1,0 +1,45 @@
+{
+  "id": "script-recovery",
+  "name": "Recover scripts",
+  "description": "Pulls script bodies out of Intune and writes them to disk as files.",
+  "category": "Scripts",
+  "version": "1.0.0",
+  "entryPoint": "Invoke-Tool.ps1",
+  "requiredScopes": [
+    "DeviceManagementConfiguration.Read.All",
+    "DeviceManagementApps.Read.All"
+  ],
+  "fields": [
+    {
+      "id": "scriptTypes",
+      "type": "multiselect",
+      "label": "Script types to recover",
+      "required": true,
+      "options": [
+        "Remediation",
+        "PlatformScript",
+        "MacOsShell",
+        "MacOsCustomAttribute",
+        "Win32Detection",
+        "Win32Requirement"
+      ],
+      "default": [
+        "Remediation",
+        "PlatformScript",
+        "MacOsShell",
+        "MacOsCustomAttribute",
+        "Win32Detection",
+        "Win32Requirement"
+      ]
+    },
+    {
+      "id": "maxWin32Apps",
+      "type": "number",
+      "label": "Win32 apps to inspect at most",
+      "default": 300,
+      "hint": "Script bodies are not returned in list calls, so each app needs its own request. Lower this if the tenant is large and you only want a sample."
+    }
+  ],
+  "order": 1,
+  "shortDescription": "script bodies written to disk as files"
+}

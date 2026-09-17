@@ -1,0 +1,39 @@
+{
+  "id": "android-journey",
+  "name": "Android device journey",
+  "description": "How an Android device was enrolled, the groups that resulted, and everything that reaches it.",
+  "note": "Covers enrolled Android devices - fully managed, dedicated, corporate-owned work profile, AOSP, and personally owned work profile. Where the device enrolled through a Device Owner profile, that profile and its enrolment token are shown, including token expiry. Devices managed by app protection policy alone are not enrolled in Intune and are out of scope.",
+  "category": "Devices",
+  "version": "1.0.0",
+  "entryPoint": "Invoke-Tool.ps1",
+  "requiredScopes": [
+    "DeviceManagementManagedDevices.Read.All",
+    "DeviceManagementServiceConfig.Read.All",
+    "DeviceManagementConfiguration.Read.All",
+    "Group.Read.All"
+  ],
+  "fields": [
+    {
+      "id": "devices",
+      "type": "text",
+      "label": "Device name or serial number, or two separated by a comma",
+      "required": true,
+      "placeholder": "ANDROID-0417, or R58M12ABCDE",
+      "hint": "One device to trace its journey, two to compare them. Exact match, case-insensitive."
+    },
+    {
+      "id": "writeHtml",
+      "type": "boolean",
+      "label": "Also write an interactive HTML report",
+      "default": true,
+      "hint": "A single self-contained file. Opens in any browser, works offline."
+    },
+    {
+      "id": "includeApps",
+      "type": "boolean",
+      "label": "Include app assignments (needs DeviceManagementApps.Read.All)",
+      "default": false
+    }
+  ],
+  "order": 4
+}

@@ -1,0 +1,376 @@
+:root {
+  color-scheme: light dark;
+
+  /* Portal Light. Grey canvas, white cards lifted by Fluent's elevation
+     shadow rather than outlined, and the classic communication blue. */
+  --ground: #f3f2f1;
+  --surface: #ffffff;
+  --surface-alt: #faf9f8;
+  --ink: #201f1e;
+  --muted: #605e5c;
+  --line: #edebe9;
+  --line-strong: #d2d0ce;
+
+  --run: #0078d4;
+  --run-hover: #106ebe;
+  --ok: #107c10;
+  --warn: #797028;
+  --bad: #a4262c;
+  --warn-ground: #fff4ce;
+  --bad-ground: #fdf3f4;
+
+  --lift: 0 1.6px 3.6px rgba(0, 0, 0, .13), 0 .3px .9px rgba(0, 0, 0, .11);
+  --lift-high: 0 3.2px 7.2px rgba(0, 0, 0, .13), 0 .6px 1.8px rgba(0, 0, 0, .11);
+  --radius: 2px;
+
+  --sans: "Segoe UI", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Dark follows the system unless the page carries an explicit choice. The
+   :not() keeps a user's light selection from being overridden by their OS. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #1b1a19;
+    --surface: #292827;
+    --surface-alt: #252423;
+    --ink: #faf9f8;
+    --muted: #a19f9d;
+    --line: #323130;
+    --line-strong: #484644;
+
+    --run: #4cc2ff;
+    --run-hover: #6fd0ff;
+    --ok: #6ccb5f;
+    --warn: #fce100;
+    --bad: #f1707b;
+    --warn-ground: #3b3223;
+    --bad-ground: #3b2325;
+
+    /* Shadows read as dirt on a dark canvas; separation comes from the
+       surface being lighter than the ground instead. */
+    --lift: none;
+    --lift-high: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #1b1a19;
+  --surface: #292827;
+  --surface-alt: #252423;
+  --ink: #faf9f8;
+  --muted: #a19f9d;
+  --line: #323130;
+  --line-strong: #484644;
+
+  --run: #4cc2ff;
+  --run-hover: #6fd0ff;
+  --ok: #6ccb5f;
+  --warn: #fce100;
+  --bad: #f1707b;
+  --warn-ground: #3b3223;
+  --bad-ground: #3b2325;
+
+  --lift: none;
+  --lift-high: none;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 14px/1.5 var(--sans);
+}
+
+/* Status strip: provenance before anything else */
+.bar {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 14px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.bar-name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+
+.bar-facts { display: flex; gap: 28px; flex-wrap: wrap; margin: 0; }
+.bar-facts div { display: flex; gap: 8px; align-items: baseline; }
+.bar-facts dt { color: var(--muted); font-size: 12px; }
+.bar-facts dd { margin: 0; font-size: 13px; }
+.bar-facts dd.path { font-family: var(--mono); font-size: 12px; }
+.bar-facts dd.absent { color: var(--bad); }
+
+main { max-width: 940px; margin: 0 auto; padding: 22px 24px 60px; }
+
+.lede { color: var(--muted); font-size: 13px; margin: 0 0 20px; max-width: 68ch; }
+
+.tools { background: none; border: none; }
+.empty { padding: 20px; color: var(--muted); margin: 0; }
+
+.tool { border-bottom: 1px solid var(--line); }
+.tool:last-child { border-bottom: none; }
+
+.tool-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 18px;
+  background: none;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.tool-head:hover { background: var(--surface-alt); }
+.tool-head:focus-visible { outline: 2px solid var(--run); outline-offset: -2px; }
+
+.tool-name { font-weight: 600; white-space: nowrap; }
+.tool-desc { color: var(--muted); font-size: 13px; }
+.tool-ver { margin-left: auto; color: var(--muted); font-family: var(--mono); font-size: 11px; }
+
+.tool-body { padding: 4px 18px 18px; border-top: 1px solid var(--line); background: var(--surface-alt); }
+.tool-body[hidden] { display: none; }
+
+.field { display: block; margin: 14px 0; max-width: 52ch; }
+.field > span { display: block; font-size: 13px; margin-bottom: 5px; }
+.field input[type=text], .field input[type=number], .field select {
+  width: 100%; padding: 7px 9px;
+  border: 1px solid var(--line-strong); border-radius: 4px;
+  font: inherit; background: var(--surface); color: var(--ink);
+}
+.field-inline { display: flex; align-items: center; gap: 8px; margin: 12px 0; font-size: 13px; }
+.checks { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.checks label { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.error { color: var(--bad); font-size: 13px; margin: 8px 0 0; }
+
+button.run, button.ghost {
+  font: inherit; padding: 8px 16px; border-radius: 4px; cursor: pointer;
+}
+/* The run button is the page's one primary action, so it carries the brand
+   colour rather than the ink colour - which would invert to white in dark. */
+button.run { background: var(--run); color: #ffffff; border: 1px solid var(--run); }
+button.run:hover:not(:disabled) { background: var(--run-hover); border-color: var(--run-hover); }
+button.run:disabled { opacity: 0.45; cursor: default; }
+button.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
+button.run:focus-visible, button.ghost:focus-visible { outline: 2px solid var(--run); outline-offset: 2px; }
+
+.actions { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+
+/* Progress */
+.progress { margin-top: 16px; }
+.progress-track { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--run); width: 0; transition: width .3s ease; }
+.progress-step { margin-top: 8px; font-size: 13px; color: var(--muted); }
+
+/* Result */
+.result { margin-top: 16px; border-left: 3px solid var(--ok); padding: 12px 14px; background: var(--surface); border-radius: 0; }
+.result.partial { border-left-color: var(--warn); background: var(--warn-ground); }
+.result.failed { border-left-color: var(--bad); background: var(--bad-ground); }
+.result h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+.result p { margin: 0 0 8px; font-size: 13px; }
+.result ul { margin: 6px 0 10px; padding-left: 18px; font-size: 13px; }
+.result .path { font-family: var(--mono); font-size: 12px; word-break: break-all; color: var(--muted); }
+.coverage { font-family: var(--mono); font-size: 12px; margin: 8px 0; }
+.coverage span.incomplete { color: var(--bad); }
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill { transition: none; }
+}
+
+/* Tools blocked by missing permissions */
+.tool.unavailable .tool-head { cursor: default; opacity: 0.55; }
+.tool.unavailable .tool-head:hover { background: none; }
+.blocked {
+  margin: 0;
+  padding: 0 18px 14px 18px;
+  font-size: 12.5px;
+  color: var(--warn);
+}
+.preflight {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+.preflight h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+.preflight ul { margin: 0; padding-left: 18px; }
+.preflight code { font-family: var(--mono); font-size: 12px; }
+
+/* Connection panel */
+.connect {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+.connect h2 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+.connect .lede { margin-bottom: 14px; }
+.connect-fields { display: flex; gap: 22px; flex-wrap: wrap; }
+.connect-fields .field { flex: 1 1 300px; margin: 0 0 4px; max-width: none; }
+.connect-fields input { font-family: var(--mono); font-size: 12.5px; }
+.connect.connected .connect-fields { display: none; }
+.conn-note { font-size: 12.5px; color: var(--muted); }
+.conn-note.ok { color: var(--ok); }
+button.disconnect { background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
+.discarded {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--warn);
+}
+.discarded code { font-family: var(--mono); font-size: 11.5px; }
+
+.field input.invalid { border-color: var(--bad); }
+.hint.bad { color: var(--bad); }
+
+.tool-note {
+  margin: 12px 0 4px;
+  padding: 9px 12px;
+  border-left: 2px solid var(--line-strong);
+  font-size: 12.5px;
+  color: var(--muted);
+  max-width: 74ch;
+}
+
+/* Values that reveal more on hover */
+.bar-facts dd.hoverable {
+  cursor: help;
+  border-bottom: 1px dotted var(--line-strong);
+}
+
+.progress-line { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.progress-line .progress-step { margin: 0; }
+button.cancel { margin-left: auto; padding: 4px 12px; font-size: 12.5px; }
+
+
+/* Cards sit on the canvas rather than being drawn on it. In dark mode the
+   shadow is removed and the surface carries a hairline instead. */
+.tool, .result, .panel {
+  box-shadow: var(--lift);
+}
+
+:root[data-theme="dark"] .tool,
+:root[data-theme="dark"] .result,
+:root[data-theme="dark"] .panel {
+  border: 1px solid var(--line);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tool,
+  :root:not([data-theme="light"]) .result,
+  :root:not([data-theme="light"]) .panel {
+    border: 1px solid var(--line);
+  }
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--run);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+
+.theme-toggle:hover {
+  background: var(--surface-alt);
+}
+
+.bar-facts .bar-end {
+  margin-left: auto;
+}
+
+/* Section headings use Intune's own vocabulary. They are not decoration: with
+   eight tools, the heading is what narrows the page to two or three candidates,
+   so it reads at the same weight as a tool name rather than receding.
+   Sentence case, because small uppercase text is slower to read. */
+.section-heading {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 22px 0 1px;
+}
+
+.section-heading:first-child {
+  margin-top: 4px;
+}
+
+/* The lead names the area; the qualifier after it recedes. */
+.section-qualifier {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.section-blurb {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0 0 8px;
+  max-width: 78ch;
+}
+
+/* A hairline border was not enough separation between one long panel's
+   internal sections - "Devices" and "Apps and policies" blended into one grey
+   mass. The card itself now steps up from the page canvas, which is what
+   actually reads as "these rows belong together" at a glance. */
+/* .tools, the outer host, is already var(--surface) - giving a section the
+   same colour put a card on top of a card of the identical shade, which is
+   why the first attempt produced no visible change at all. .tools drops its
+   own background so each section is the only surface doing the lifting, and
+   the page canvas shows through the 22px gap between them. */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 8px;
+  margin-bottom: 22px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.section .tool {
+  box-shadow: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  margin: 0;
+}
+
+.section .tool:last-child {
+  border-bottom: none;
+}
+
+.bar-version {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+  font-family: var(--mono);
+}
+
+.update-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--warn-ground);
+  color: var(--warn);
+  font-size: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.update-banner a {
+  color: var(--run);
+}

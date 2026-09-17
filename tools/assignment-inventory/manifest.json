@@ -1,0 +1,29 @@
+{
+  "id": "assignment-inventory",
+  "name": "Assignment inventory",
+  "description": "One row per assignment: what targets what, across the whole tenant.",
+  "category": "Assignments",
+  "version": "1.0.0",
+  "entryPoint": "Invoke-Tool.ps1",
+  "requiredScopes": [
+    "DeviceManagementConfiguration.Read.All",
+    "Group.Read.All"
+  ],
+  "fields": [
+    {
+      "id": "includeApps",
+      "type": "boolean",
+      "label": "Include applications (needs DeviceManagementApps.Read.All)",
+      "default": false
+    },
+    {
+      "id": "resolveGroupNames",
+      "type": "boolean",
+      "label": "Resolve group names",
+      "default": true,
+      "hint": "Turn off on very large directories to skip the group listing pass."
+    }
+  ],
+  "order": 1,
+  "shortDescription": "one row per assignment"
+}

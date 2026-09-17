@@ -1,0 +1,29 @@
+{
+  "id": "orphan-audit",
+  "name": "Orphaned and unassigned",
+  "description": "Finds policies, scripts and filters that nothing is assigned to or that target nothing.",
+  "category": "Assignments",
+  "version": "1.0.0",
+  "entryPoint": "Invoke-Tool.ps1",
+  "requiredScopes": [
+    "DeviceManagementConfiguration.Read.All",
+    "Group.Read.All"
+  ],
+  "fields": [
+    {
+      "id": "checkEmptyGroups",
+      "type": "boolean",
+      "label": "Flag assignments pointing at empty groups",
+      "default": true,
+      "hint": "Counts members of each targeted group. One extra request per group."
+    },
+    {
+      "id": "includeApps",
+      "type": "boolean",
+      "label": "Include applications (needs DeviceManagementApps.Read.All)",
+      "default": false
+    }
+  ],
+  "order": 2,
+  "shortDescription": "policies and filters reaching nothing"
+}

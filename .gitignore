@@ -1,0 +1,17 @@
+# Runtime configuration - holds tenant and client identifiers
+config.json
+
+# Tool output
+*.csv
+*.xlsx
+_provenance.txt
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,79 @@
+name: Bug report
+description: Something produced a wrong or missing result
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The error text with its line number resolves most issues in one step.
+        Everything else here is to reproduce it.
+
+  - type: dropdown
+    id: tool
+    attributes:
+      label: Which tool
+      options:
+        - Assignment inventory
+        - Autopilot device journey
+        - Change history
+        - Device 360
+        - Orphaned and unassigned
+        - Recover scripts
+        - Sign-in or the page itself
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: The failure message in full
+      description: >
+        Copy it exactly. It carries the file and line number, which is usually
+        enough on its own.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      description: >
+        If a value was wrong rather than missing, say what it showed and what
+        it should have shown.
+    validations:
+      required: true
+
+  - type: textarea
+    id: coverage
+    attributes:
+      label: The coverage block from the export
+      description: >
+        From sheet one of the workbook, or _provenance.txt. Redact anything you
+        need to - the source names and whether each was complete is what matters.
+      render: text
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: v0.9.0, or the commit you are on
+    validations:
+      required: true
+
+  - type: input
+    id: powershell
+    attributes:
+      label: PowerShell version and platform
+      placeholder: 7.6.5 on macOS
+    validations:
+      required: true
+
+  - type: textarea
+    id: scale
+    attributes:
+      label: Rough tenant scale
+      description: >
+        Devices, policies, groups - order of magnitude is fine. Several bugs have
+        only appeared on large tenants.
+      placeholder: ~20,000 devices, ~250 policies, ~68,000 groups

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IntuneSightline</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-name">IntuneSightline <span id="f-version" class="bar-version"></span></div>
+  <dl class="bar-facts" id="facts">
+    <div><dt>Tenant</dt><dd id="f-tenant">not connected</dd></div>
+    <div><dt>Signed in</dt><dd id="f-account">—</dd></div>
+    <div><dt>Application</dt><dd id="f-client" class="path">—</dd></div>
+    <div><dt>Read access</dt><dd id="f-scopes">—</dd></div>
+    <div class="bar-end"><button type="button" id="theme-toggle" class="theme-toggle">Dark</button></div>
+    <div><dt>Files</dt><dd id="f-output" class="path">—</dd></div>
+  </dl>
+</header>
+
+<main>
+
+  <section class="connect" id="connect">
+    <h2 id="connect-title">Connect to a tenant</h2>
+    <p class="lede" id="connect-lede">
+      Permissions belong to an application, not to you. Enter the tenant and the
+      application registration whose Intune read permissions you want to use.
+    </p>
+
+    <div class="connect-fields" id="connect-fields">
+      <label class="field">
+        <span>Tenant ID</span>
+        <input type="text" id="tenant-id" placeholder="00000000-0000-0000-0000-000000000000" autocomplete="off" spellcheck="false">
+        <p class="hint">A tenant GUID, or a domain such as contoso.onmicrosoft.com</p>
+      </label>
+      <label class="field">
+        <span>Application (client) ID</span>
+        <input type="text" id="client-id" placeholder="00000000-0000-0000-0000-000000000000" autocomplete="off" spellcheck="false">
+        <p class="hint">An app registration with delegated Intune read permissions</p>
+      </label>
+    </div>
+
+    <div class="actions">
+      <button class="run" id="connect-btn" type="button" disabled>Connect</button>
+      <span class="conn-note" id="conn-note"></span>
+    </div>
+
+    <p class="error" id="connect-error" hidden></p>
+  </section>
+
+  <p class="lede" id="lede">
+    Every export records the tenant, the account that collected it, and what was and was not covered.
+  </p>
+
+  <section id="tools" class="tools" aria-live="polite">
+    <p class="empty">Connect to a tenant to see the available tools.</p>
+  </section>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>

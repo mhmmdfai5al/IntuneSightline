@@ -1,0 +1,52 @@
+{
+  "id": "device-360",
+  "name": "Device 360",
+  "description": "Everything about one or more devices: what targets them, conflicts, groups, apps and encryption.",
+  "note": "Up to five devices, separated by commas. Names, serial numbers and Intune IDs are all accepted and can be mixed. With more than one device the workbook opens with what they disagree about, which is usually why you ran it. Optional sections cost one extra request per device.",
+  "category": "Devices",
+  "version": "2.1.0",
+  "entryPoint": "Invoke-Tool.ps1",
+  "requiredScopes": [
+    "DeviceManagementManagedDevices.Read.All",
+    "DeviceManagementConfiguration.Read.All",
+    "Group.Read.All"
+  ],
+  "fields": [
+    {
+      "id": "devices",
+      "type": "text",
+      "label": "Device names, serial numbers or IDs (max 5)",
+      "required": true,
+      "placeholder": "LAPTOP-4417, 5CG1234ABC, a1b2c3d4-...",
+      "hint": "Comma separated. Exact match, case-insensitive. An ambiguous entry is reported rather than guessed."
+    },
+    {
+      "id": "includeConflicts",
+      "type": "boolean",
+      "label": "Include conflict state reported by the device",
+      "default": true,
+      "hint": "Uses Intune's own verdict, which covers policies you cannot see. Only exists after the device has checked in."
+    },
+    {
+      "id": "includeEncryption",
+      "type": "boolean",
+      "label": "Include encryption state",
+      "default": false
+    },
+    {
+      "id": "includeInstalledApps",
+      "type": "boolean",
+      "label": "Include installed apps detected on the device",
+      "default": false,
+      "hint": "One extra request per device. Windows discovery covers MSI and Store apps only, so this is not a complete software inventory."
+    },
+    {
+      "id": "includeApps",
+      "type": "boolean",
+      "label": "Include app assignments (needs DeviceManagementApps.Read.All)",
+      "default": false
+    }
+  ],
+  "order": 9,
+  "hidden": true
+}

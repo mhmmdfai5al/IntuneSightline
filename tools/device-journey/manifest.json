@@ -1,0 +1,39 @@
+{
+  "id": "device-journey",
+  "name": "Windows device journey",
+  "description": "How a Windows device was enrolled, the groups that resulted, and everything that reaches it.",
+  "note": "Starts from the device, not from Autopilot. Works for any enrolled device - Autopilot, co-managed, hybrid joined or manually enrolled. Where an Autopilot registration exists its group tag is shown, because dynamic rules commonly match on it. Groups come from real directory membership rather than from reading rules, because rule text can be written many ways and would not be definitive. Give two devices to compare them.",
+  "category": "Devices",
+  "version": "1.0.0",
+  "entryPoint": "Invoke-Tool.ps1",
+  "requiredScopes": [
+    "DeviceManagementServiceConfig.Read.All",
+    "DeviceManagementManagedDevices.Read.All",
+    "DeviceManagementConfiguration.Read.All",
+    "Group.Read.All"
+  ],
+  "fields": [
+    {
+      "id": "serialNumbers",
+      "type": "text",
+      "label": "Serial number or device name, or two separated by a comma",
+      "required": true,
+      "placeholder": "5CG1234ABC, or LAPTOP-4417",
+      "hint": "One device to trace its journey, two to compare them. Serial numbers and Intune device names are both accepted and can be mixed. Exact match, case-insensitive."
+    },
+    {
+      "id": "writeHtml",
+      "type": "boolean",
+      "label": "Also write an interactive HTML report",
+      "default": true,
+      "hint": "A single self-contained file showing how the device reached each group. Opens in any browser, works offline, no network needed."
+    },
+    {
+      "id": "includeApps",
+      "type": "boolean",
+      "label": "Include app assignments (needs DeviceManagementApps.Read.All)",
+      "default": false
+    }
+  ],
+  "order": 1
+}
