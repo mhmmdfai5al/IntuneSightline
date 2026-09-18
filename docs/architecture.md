@@ -115,6 +115,40 @@ Three things about `$batch` are easy to get wrong and are handled: the batch ret
 even when requests inside it failed, responses come back in any order and must be
 correlated by id, and throttled sub-requests are not retried automatically.
 
+## The journey tools are a family, not a copy
+
+Windows, iOS/iPadOS, macOS and Android device journey are four separate tools rather
+than one tool branching on platform. Each resolves its own device, reads its own
+enrolment story (Autopilot, ADE, AOSP, Device Owner — whichever applies), and renders
+its own HTML report. What they share — walking group membership and nesting, resolving
+what reaches the device, the HTML shell itself — was written once per tool rather than
+factored into core, on the view that a platform's enrolment model is different enough
+from the others that sharing the wrong piece would cost more than the duplication does.
+
+A tool in this family resolves entirely on its own: nothing it calls may exist only in
+a sibling tool. `tests/Invoke-Checks.ps1` enforces this per tool rather than across the
+whole codebase pooled together — the earlier, pooled version of that check missed a
+function that existed in one journey tool and was called from another, which only
+surfaced at runtime once the two tools were loaded independently.
+
+## A hidden tool keeps its code without keeping its place on the page
+
+A manifest can declare `"hidden": true`. The tool still loads, still passes every
+check, and can still be run directly — it just does not appear in the launch page's
+list. This is for a tool whose shape is under active reconsideration: removing it
+outright would mean rebuilding it from nothing once its role is settled, where hiding
+it costs one field and restores it by removing that field.
+
+## Sections are the Intune admin centre's own headings, not the tool's own category
+
+A tool's `category` places it under one of the launch page's section headings —
+Devices, Assignments, Scripts, Audit — and those headings are deliberately the
+navigation labels the Intune admin centre already uses, not a vocabulary this project
+invented. A `terse` section (currently just Devices) additionally hoists its
+description up to the section itself, and shows only a short platform name per row,
+because four descriptions that differ solely in "Windows" versus "Android" cost more
+reading than they save.
+
 ## What is deliberately not here
 
 **No module dependency.** Microsoft Graph is a REST API; the SDK is one wrapper over it.

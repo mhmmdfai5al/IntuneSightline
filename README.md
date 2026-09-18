@@ -28,13 +28,14 @@ Each tool here answers one of those.
 
 | Tool | Answers |
 |---|---|
-| Android device journey | How an Android device was enrolled, the groups that resulted, and everything that reaches it |
-| Assignment inventory | One row per assignment: what targets what, across the whole tenant |
-| Change history | Who changed what and when, from the Intune audit log. Includes deletions and renames |
-| Orphaned and unassigned | Finds policies, scripts and filters that nothing is assigned to or that target nothing |
-| Recover scripts | Pulls script bodies out of Intune and writes them to disk as files |
 | Windows device journey | How a Windows device was enrolled, the groups that resulted, and everything that reaches it |
 | iOS/iPadOS device journey | How an iPhone or iPad was enrolled, the groups that resulted, and everything that reaches it |
+| macOS device journey | How a Mac was enrolled, the groups that resulted, and everything that reaches it |
+| Android device journey | How an Android device was enrolled, the groups that resulted, and everything that reaches it |
+| Assignment inventory | One row per assignment: what targets what, across the whole tenant |
+| Orphaned and unassigned | Finds policies, scripts and filters that nothing is assigned to or that target nothing |
+| Recover scripts | Pulls script bodies out of Intune and writes them to disk as files |
+| Change history | Who changed what and when, from the Intune audit log. Includes deletions and renames |
 
 ## What it will not do
 
@@ -46,6 +47,17 @@ whether there are six tools or sixty.
 write permission is rejected when it loads.
 
 **It does not listen on the network.** The server binds to `127.0.0.1` only.
+
+## The launch page and the reports both follow the Intune admin centre
+
+Tools are grouped by the same headings Intune itself uses — Devices, Apps and
+policies, Scripts and remediations, Tenant administration — so nothing on the page
+needs learning separately from the portal you already know.
+
+Both the launch page and every HTML report support a light and a dark theme, matching
+your system by default with a toggle to override it. An HTML report opens in whichever
+theme you were using when you ran it, and always prints on a plain white background
+regardless of screen theme, so a copy attached to a ticket stays legible.
 
 ## Every export says what it could see
 
