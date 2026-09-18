@@ -5,11 +5,11 @@ center answers badly, and write the answer to a workbook or a self-contained HTM
 
 No modules to install. No app registration required. Nothing writes to your tenant.
 
-![IntuneSightline launch page](https://github.com/mhmmdfai5al/IntuneSightline/blob/main/docs/images/launch-page.png)
+![IntuneSightline launch page](docs/images/launch-page.png)
 
 Connect page
 
-![Connect to a tenant](https://github.com/mhmmdfai5al/IntuneSightline/blob/main/docs/images/connect-page.png)
+![Connect to a tenant](docs/images/connect-page.png)
 
 
 Every tool's output for this same launch page is in [`docs/samples`](docs/samples) -
