@@ -5,8 +5,18 @@ center answers badly, and write the answer to a workbook or a self-contained HTM
 
 No modules to install. No app registration required. Nothing writes to your tenant.
 
-<!-- Replace with a screenshot of the tool list, or a short GIF of a run. -->
-<!-- ![IntuneSightline](docs/screenshot.png) -->
+![IntuneSightline launch page](docs/images/launch-page.png)
+
+<details>
+<summary>Connect page</summary>
+
+![Connect to a tenant](docs/images/connect-page.png)
+
+</details>
+
+Every tool's output for this same launch page is in [`docs/samples`](docs/samples) -
+fabricated data, a fictional tenant, nothing real. Open one to see the shape of the
+output before running anything against your own tenant.
 
 ```powershell
 ./Start-IntuneSightline.ps1

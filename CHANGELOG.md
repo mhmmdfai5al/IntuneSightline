@@ -7,6 +7,12 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- `docs/images/launch-page.png` and `docs/images/connect-page.png` in the README, and
+  `docs/samples/` - one real output file per tool (four HTML journey reports, four
+  workbooks), built against a fictional tenant so a visitor can see the actual shape
+  of every tool's output before running anything.
+
 ## [1.0.0] - 2026-09-18
 
 Three new platforms, a themed interface across the launch page and every HTML

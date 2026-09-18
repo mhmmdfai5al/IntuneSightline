@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Windows device journey - 5CG2417XQZ</title><style>
+:root{
+  color-scheme:light dark;
+  /* Portal Light - matches the app. */
+  --ground:#f3f2f1; --surface:#fff; --surface-alt:#faf9f8;
+  --ink:#201f1e; --muted:#605e5c; --line:#edebe9; --strong:#d2d0ce;
+  --run:#0078d4; --ok:#107c10; --warn:#797028; --bad:#a4262c; --excl:#a4262c;
+  --warn-bg:#fff4ce; --bad-bg:#fdf3f4;
+  --lift:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+  --mono:ui-monospace,"Cascadia Mono","SF Mono",Consolas,monospace
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#1b1a19; --surface:#292827; --surface-alt:#252423;
+  --ink:#faf9f8; --muted:#a19f9d; --line:#323130; --strong:#484644;
+  --run:#4cc2ff; --ok:#6ccb5f; --warn:#fce100; --bad:#f1707b; --excl:#f1707b;
+  --warn-bg:#3b3223; --bad-bg:#3b2325; --lift:none
+}}
+:root[data-theme="dark"]{
+  --ground:#1b1a19; --surface:#292827; --surface-alt:#252423;
+  --ink:#faf9f8; --muted:#a19f9d; --line:#323130; --strong:#484644;
+  --run:#4cc2ff; --ok:#6ccb5f; --warn:#fce100; --bad:#f1707b; --excl:#f1707b;
+  --warn-bg:#3b3223; --bad-bg:#3b2325; --lift:none
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+font:14px/1.5 "Segoe UI",ui-sans-serif,system-ui,sans-serif}
+main{max-width:1020px;margin:0 auto;padding:24px}
+h1{font-size:19px;font-weight:600;margin:0 0 2px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.topbar{display:flex;align-items:baseline;gap:14px;margin:0 0 10px}
+.topbar button{background:none;border:none;color:var(--run);font:inherit;font-size:11.5px;cursor:pointer;padding:2px 6px}
+section{background:var(--surface);border-radius:2px;padding:16px 18px;margin-bottom:16px;box-shadow:var(--lift)}
+:root[data-theme="dark"] section{border:1px solid var(--line)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) section{border:1px solid var(--line)}}
+h2{font-size:15px;font-weight:600;margin:0 0 3px}
+.hint{color:var(--muted);font-size:12.5px;margin:0 0 12px;max-width:76ch}
+.tagline{font-size:12.5px;margin:0 0 14px;padding:9px 12px;border-left:3px solid var(--strong);background:var(--surface-alt)}
+.tagline code{font-family:var(--mono);font-size:11.5px}
+.excl{border-left:4px solid var(--excl);border-radius:2px;padding:11px 14px;margin:0 0 16px;background:var(--bad-bg);font-size:12.5px}
+.excl-h{font-weight:600;margin-bottom:5px;color:var(--bad)}
+.excl .via{color:var(--muted);font-size:11.5px}
+.excl-n{margin:7px 0 0;font-size:11.5px;color:var(--muted)}
+.identity{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.fact{display:inline-flex;align-items:baseline;gap:6px;background:var(--surface);
+border-radius:2px;padding:4px 10px;font-size:12px;box-shadow:var(--lift)}
+:root[data-theme="dark"] .fact{border:1px solid var(--line)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fact{border:1px solid var(--line)}}
+.fact .k{color:var(--muted);font-size:11px}
+.fact .v{font-weight:600}
+ul.forest,ul.forest ul{list-style:none;margin:0;padding:0}
+ul.forest>li.root{border-top:1px solid var(--line);padding:9px 0}
+ul.forest>li.root:first-child{border-top:none}
+ul.forest ul{margin-left:14px;border-left:1px solid var(--strong);padding-left:13px;margin-top:5px}
+ul.forest ul li{padding:3px 0}
+ul.forest ul ul ul ul{margin-left:0;border-left:none;padding-left:0}
+ul.forest ul ul ul ul>li::before{content:"\21B3";color:var(--muted);margin-right:5px;font-size:11px}
+li.zero>.node .gname{color:var(--muted);font-weight:400}
+li.repeat{padding:3px 0}
+li.repeat .gname{color:var(--muted);font-weight:400}
+.node{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.gname{font-weight:600}
+.pfx{color:var(--muted);font-weight:400}
+.how{font-size:11.5px;color:var(--muted)}
+.count{font-size:11.5px;color:var(--muted)}
+.inherited-count{color:var(--warn);font-weight:600}
+details.rule{margin:4px 0 0 2px}
+details.rule summary{font-size:11.5px;color:var(--run);cursor:pointer}
+details.rule code{display:block;margin-top:5px;font-family:var(--mono);font-size:11.5px;
+background:var(--surface-alt);padding:8px 10px;border-radius:2px;word-break:break-all;color:var(--muted)}
+details.sect{border:1px solid var(--line);border-radius:2px;margin-bottom:7px}
+details.sect summary{padding:9px 12px;cursor:pointer;display:flex;gap:10px;align-items:baseline;font-size:12.5px}
+details.sect .sname{font-weight:600}
+details.sect .smeta{color:var(--muted);font-size:11.5px;margin-left:auto}
+details.sect.empty-sect{opacity:.55}
+details.sect.empty-sect summary{cursor:default}
+table.applies{width:100%;border-collapse:collapse;font-size:12.5px}
+table.applies th{text-align:left;font-weight:600;padding:7px 12px;border-top:1px solid var(--line);
+border-bottom:1px solid var(--line);background:var(--surface-alt);cursor:pointer;user-select:none;
+white-space:nowrap;position:sticky;top:0;z-index:1}
+table.applies td{padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.applies tr:last-child td{border-bottom:none}
+.i-in{font-size:10.5px;padding:1px 7px;border-radius:2px;border:1px solid var(--strong)}
+.i-ex{font-size:10.5px;padding:1px 7px;border-radius:2px;border:1px solid var(--excl);color:var(--excl);font-weight:600}
+.i-req{font-size:10.5px;padding:1px 7px;border-radius:2px;border:1px solid var(--ink);font-weight:600}
+.dash{color:var(--muted)}
+.ok{color:var(--ok)}.bad{color:var(--bad);font-weight:600}
+input[type=search]{width:100%;padding:8px 10px;border:1px solid var(--strong);border-radius:2px;
+font:inherit;margin-bottom:10px;background:var(--surface);color:var(--ink)}
+.meta{font-size:12px;color:var(--muted)}
+.meta dt{display:inline;font-weight:400}
+.meta dd{display:inline;margin:0 16px 0 4px;color:var(--ink)}
+.meta table{width:100%;border-collapse:collapse;font-size:12px}
+.meta th,.meta td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);font-weight:400}
+.empty{color:var(--muted);font-size:12.5px;margin:0}
+button.linky{background:none;border:none;color:var(--run);font:inherit;cursor:pointer;padding:0}
+.toolbar{font-size:11.5px;color:var(--muted);margin:0 0 10px}
+details.tree>summary{cursor:pointer;list-style:none;display:block}
+details.tree>summary::-webkit-details-marker{display:none}
+details.tree>summary h2{margin:0}
+details.tree>summary::before{content:"\25B8";color:var(--muted);font-size:11px;margin-right:7px}
+details.tree[open]>summary::before{content:"\25BE"}
+.summary-line{display:block;color:var(--muted);font-size:12.5px;margin:2px 0 0 18px}
+details.tree[open] .summary-line{margin-bottom:10px}
+/* Printed on white whatever the screen theme, so a PDF is always legible. */
+@media print{
+  :root,:root[data-theme="dark"]{
+    --ground:#fff;--surface:#fff;--surface-alt:#fff;--ink:#000;--muted:#444;
+    --line:#ccc;--strong:#999;--lift:none;--bad-bg:#fff;--warn-bg:#fff
+  }
+  body{background:#fff}
+  details>summary{display:none}
+  details{display:block}
+  details.rule code{border:1px solid #ccc}
+  section{break-inside:avoid;box-shadow:none;border:none;padding:0 0 12px}
+  .topbar button{display:none}
+}
+</style></head><body><main><h1>Windows device journey</h1><p class="sub">5CG2417XQZ &middot; NW-LT-0417</p><details class="meta"><summary style="cursor:pointer;font-size:12px">Provenance &middot; Northwind Traders &middot; 2026-09-14 09:12:03Z</summary><dl class="meta" style="margin-top:8px"><dt>Collected by</dt><dd>a.admin@northwind.example</dd><dt>Tool</dt><dd>device-journey v1.0.0</dd></dl><table style="margin-top:8px"><thead><tr><th>Source</th><th>Items</th><th>State</th></tr></thead><tbody><tr><td>windowsAutopilotDeviceIdentities (by name or serial)</td><td>1</td><td class="ok">complete</td></tr><tr><td>devices/{id}/transitiveMemberOf</td><td>6</td><td class="ok">complete</td></tr><tr><td>groups/{id}/memberOf (nesting edges, batched)</td><td>6</td><td class="ok">complete</td></tr><tr><td>deviceManagement/configurationPolicies</td><td>218</td><td class="ok">complete</td></tr><tr><td>deviceAppManagement/mobileApps</td><td>140</td><td class="ok">complete</td></tr></tbody></table></details><div class="excl"><div class="excl-h">1 exclusions apply to this device</div><div>Microsoft 365 Apps 32bit <span class="via">via NW-M365-64bit</span></div><p class="excl-n">An exclusion overrides an inclusion for the same policy.</p></div><section><details class="tree"><summary><h2 style="display:inline">How this device reached its groups</h2><span class="summary-line">Member of 3 groups, 2 by rule and 1 added directly, inheriting 6 more through nesting.</span></summary><p class="tagline">Group tag <code>UK-LAPTOP-STD</code>, written by Intune as <code>OrderID</code> on the device object. Dynamic rules testing <code>devicePhysicalIds</code> read that value.</p><p class="toolbar">9 groups reached &middot; 2 by rule &middot; 1 added directly &middot; 2 dynamic &middot; <button class="linky" id="expandall">expand everything</button> &middot; <button class="linky" id="showzero" data-state="off">show groups with no policy</button></p><h3 style="font-size:12.5px;font-weight:600;margin:14px 0 3px">Matched by rule</h3><p class="hint">Dynamic groups whose membership rule this device satisfies. Everything nested beneath was inherited, not targeted.</p><ul class="forest"><li class="root"><div class="node"><span class="gname">NW-UEM-UK-Laptops</span><span class="count">9 policies</span></div><details class="rule"><summary>rule</summary><code>(device.devicePhysicalIds -any (_ -eq &quot;[OrderID]:UK-LAPTOP-STD&quot;))</code></details><ul><li class="child"><div class="node"><span class="gname">NW-UEM-EMEA-Devices</span><span class="count">0 policies</span></div><ul><li class="child"><div class="node"><span class="gname">NW-UEM-All-Windows</span><span class="count inherited-count">11 policies</span></div><ul><li class="child"><div class="node"><span class="gname">NW-UEM-All-Devices</span><span class="count">0 policies</span></div></li></ul></li></ul></li></ul></li><li class="root"><div class="node"><span class="gname">NW-UEM-W11-Ready</span><span class="count">4 policies</span></div><details class="rule"><summary>rule</summary><code>(device.deviceOSVersion -startsWith &quot;10.0.22&quot;)</code></details></li></ul><h3 style="font-size:12.5px;font-weight:600;margin:18px 0 3px">Added directly</h3><p class="hint">Assigned groups the device is a member of because someone put it there.</p><ul class="forest"><li class="root"><div class="node"><span class="gname">NW-Edge-Pilot</span><span class="count">2 policies</span></div></li></ul><p class="hint" style="margin:14px 0 0;border-top:1px solid #ced5db;padding-top:10px">Entra does not record when a device joined a dynamic group, so this shows how membership arises, not when it began.</p></details></section><section><details class="tree"><summary><h2 style="display:inline">What reaches this device</h2><span class="summary-line">26 items reach this device, 1 excluded.</span></summary><p class="hint">Grouped by type. Anything targeting one of the groups above appears here.</p><input type="search" id="filter" placeholder="Filter across all sections..."><details class="sect" open><summary><span class="sname">Configuration policies</span><span class="smeta">11</span></summary><table class="applies"><thead><tr><th data-sort>Name</th><th data-sort>Assignment</th><th data-sort>Reaches via</th><th data-sort>Filter</th></tr></thead><tbody><tr><td>Windows - BitLocker Silent Encryption</td><td><span class="i-in">Included</span></td><td>NW-UEM-UK-Laptops</td><td><span class="dash">&mdash;</span></td></tr><tr><td>Windows - Firewall Baseline</td><td><span class="i-in">Included</span></td><td>NW-UEM-All-Windows</td><td><span class="dash">&mdash;</span></td></tr><tr><td>Windows - Edge Beta Channel</td><td><span class="i-ex">Excluded</span></td><td>NW-Edge-Pilot</td><td><span class="dash">&mdash;</span></td></tr><tr><td>Windows - OneDrive KFM</td><td><span class="i-in">Included</span></td><td>NW-UEM-UK-Laptops</td><td><span class="dash">&mdash;</span></td></tr></tbody></table></details><details class="sect"><summary><span class="sname">Compliance policies</span><span class="smeta">2</span></summary><table class="applies"><thead><tr><th data-sort>Name</th><th data-sort>Assignment</th><th data-sort>Reaches via</th><th data-sort>Filter</th></tr></thead><tbody><tr><td>Corporate Windows Compliance</td><td><span class="i-in">Included</span></td><td>NW-UEM-All-Windows</td><td><span class="dash">&mdash;</span></td></tr><tr><td>Minimum OS Build W11</td><td><span class="i-in">Included</span></td><td>NW-UEM-W11-Ready</td><td><span class="dash">&mdash;</span></td></tr></tbody></table></details><details class="sect empty-sect"><summary><span class="sname">Security baselines</span><span class="smeta">none reach this device</span></summary></details><details class="sect"><summary><span class="sname">Scripts and remediations</span><span class="smeta">1</span></summary><table class="applies"><thead><tr><th data-sort>Name</th><th data-sort>Assignment</th><th data-sort>Reaches via</th><th data-sort>Filter</th></tr></thead><tbody><tr><td>Detect - Stale Recovery Key</td><td><span class="i-in">Included</span></td><td>NW-UEM-All-Windows</td><td><span class="dash">&mdash;</span></td></tr></tbody></table></details><details class="sect empty-sect"><summary><span class="sname">App configuration policies</span><span class="smeta">none reach this device</span></summary></details><details class="sect"><summary><span class="sname">Applications</span><span class="smeta">8 &amp;middot; 1 excluded</span></summary><table class="applies"><thead><tr><th data-sort>Name</th><th data-sort>Assignment</th><th data-sort>Reaches via</th><th data-sort>Filter</th></tr></thead><tbody><tr><td>Microsoft 365 Apps 64bit</td><td><span class="i-req">Required</span></td><td>NW-UEM-UK-Laptops</td><td><span class="dash">&mdash;</span></td></tr><tr><td>Microsoft 365 Apps 32bit</td><td><span class="i-ex">Excluded</span></td><td>NW-M365-64bit</td><td><span class="dash">&mdash;</span></td></tr><tr><td>Company Portal</td><td><span class="i-req">Required</span></td><td>NW-UEM-All-Devices</td><td><span class="dash">&mdash;</span></td></tr><tr><td>Adobe Acrobat Reader</td><td><span class="i-in">Available</span></td><td>NW-UEM-All-Windows</td><td><span class="dash">&mdash;</span></td></tr></tbody></table></details></details></section><script>
+document.querySelectorAll("th[data-sort]").forEach(function(th){
+  th.addEventListener("click",function(){
+    var table=th.closest("table"),body=table.tBodies[0],i=[].indexOf.call(th.parentNode.children,th);
+    var asc=th.dataset.dir!=="asc";
+    [].slice.call(body.rows).sort(function(a,b){
+      var x=a.cells[i].innerText.trim(),y=b.cells[i].innerText.trim();
+      return asc?x.localeCompare(y):y.localeCompare(x);
+    }).forEach(function(r){body.appendChild(r)});
+    table.querySelectorAll("th").forEach(function(o){o.dataset.dir=""});
+    th.dataset.dir=asc?"asc":"desc";
+  });
+});
+var box=document.getElementById("filter");
+if(box){box.addEventListener("input",function(){
+  var q=box.value.toLowerCase();
+  document.querySelectorAll("details.sect").forEach(function(sec){
+    var shown=0;
+    sec.querySelectorAll("tbody tr").forEach(function(r){
+      var hit=r.innerText.toLowerCase().indexOf(q)>-1;
+      r.style.display=hit?"":"none"; if(hit)shown++;
+    });
+    if(q){sec.open=shown>0;sec.style.display=shown?"":"none";}
+    else{sec.style.display="";}
+  });
+});}
+var themeBtn=document.getElementById("theme-toggle");
+if(themeBtn){themeBtn.addEventListener("click",function(){
+  var root=document.documentElement;
+  var dark=root.getAttribute("data-theme")==="dark";
+  root.setAttribute("data-theme",dark?"light":"dark");
+});}
+var all=document.getElementById("expandall");
+if(all){all.addEventListener("click",function(){
+  var open=all.dataset.state!=="open";
+  document.querySelectorAll("details.rule,details.tree,details.sect").forEach(function(d){
+    if(!d.classList.contains("empty-sect"))d.open=open;
+  });
+  all.dataset.state=open?"open":"closed";
+  all.textContent=open?"collapse everything":"expand everything";
+});}
+var zeros=document.getElementById("showzero");
+if(zeros){zeros.addEventListener("click",function(){
+  var on=zeros.dataset.state==="on";
+  document.querySelectorAll("li.zero").forEach(function(l){l.style.display=on?"none":""});
+  zeros.dataset.state=on?"off":"on";
+  zeros.textContent=on?"show groups with no policy":"hide groups with no policy";
+});}
+document.querySelectorAll("li.zero").forEach(function(l){l.style.display="none"});
+</script></main></body></html>
