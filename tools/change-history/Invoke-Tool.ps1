@@ -3,42 +3,6 @@ Set-StrictMode -Version Latest
 $ToolId      = 'change-history'
 $ToolVersion = '1.4.0'
 
-function Get-SightlineAuditActor {
-    <#
-        The actor shape varies by how the change was made: an admin in the
-        portal, an app using application permissions, or a service. Pull
-        whichever identity fields are present rather than assuming one.
-    #>
-    param($Actor)
-
-    if (-not $Actor) {
-        return [pscustomobject]@{ Name = '(unknown)'; Id = ''; Type = 'unknown'; App = '' }
-    }
-
-    $names = $Actor.PSObject.Properties.Name
-
-    $upn = ''
-    foreach ($field in @('userPrincipalName', 'userId', 'remoteTenantId')) {
-        if ($names -contains $field -and $Actor.$field) { $upn = [string]$Actor.$field; break }
-    }
-
-    $app = ''
-    foreach ($field in @('applicationDisplayName', 'applicationId')) {
-        if ($names -contains $field -and $Actor.$field) { $app = [string]$Actor.$field; break }
-    }
-
-    $type = if ($names -contains 'type' -and $Actor.type) { [string]$Actor.type } else { 'unknown' }
-
-    $display = if ($upn) { $upn } elseif ($app) { "$app (application)" } else { '(unknown)' }
-
-    return [pscustomobject]@{
-        Name = $display
-        Id   = if ($names -contains 'userId') { [string]$Actor.userId } else { '' }
-        Type = $type
-        App  = $app
-    }
-}
-
 function Get-SightlineRoleGroupMap {
     <#
         Maps a security group id to the Intune role names assigned through it.

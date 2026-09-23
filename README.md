@@ -5,12 +5,14 @@ center answers badly, and write the answer to a workbook or a self-contained HTM
 
 No modules to install. No app registration required. Nothing writes to your tenant.
 
-![IntuneSightline launch page](https://cdn.jsdelivr.net/gh/mhmmdfai5al/IntuneSightline@main/docs/images/launch-page.png)
+![IntuneSightline launch page](docs/images/launch-page.png)
 
-Connect page
+<details>
+<summary>Connect page</summary>
 
-![Connect to a tenant](https://cdn.jsdelivr.net/gh/mhmmdfai5al/IntuneSightline@main/docs/images/connect-page.png)
+![Connect to a tenant](docs/images/connect-page.png)
 
+</details>
 
 Every tool's output for this same launch page is in [`docs/samples`](docs/samples) -
 fabricated data, a fictional tenant, nothing real. Open one to see the shape of the
@@ -36,14 +38,14 @@ Each tool here answers one of those.
 
 | Tool | Answers |
 |---|---|
+| Android device journey | How an Android device was enrolled, the groups that resulted, and everything that reaches it |
+| Assignment inventory | One row per assignment: what targets what, across the whole tenant |
+| Change history | Who changed what and when, from the Intune audit log. Includes deletions and renames |
+| Orphaned and unassigned | Finds policies, scripts and filters that nothing is assigned to or that target nothing |
+| Recover scripts | Pulls script bodies out of Intune and writes them to disk as files |
 | Windows device journey | How a Windows device was enrolled, the groups that resulted, and everything that reaches it |
 | iOS/iPadOS device journey | How an iPhone or iPad was enrolled, the groups that resulted, and everything that reaches it |
 | macOS device journey | How a Mac was enrolled, the groups that resulted, and everything that reaches it |
-| Android device journey | How an Android device was enrolled, the groups that resulted, and everything that reaches it |
-| Assignment inventory | One row per assignment: what targets what, across the whole tenant |
-| Orphaned and unassigned | Finds policies, scripts and filters that nothing is assigned to or that target nothing |
-| Recover scripts | Pulls script bodies out of Intune and writes them to disk as files |
-| Change history | Who changed what and when, from the Intune audit log. Includes deletions and renames |
 
 ## What it will not do
 
@@ -140,7 +142,18 @@ Tested on Windows and macOS. Nothing in it is Windows-specific.
 ```
 
 Static checks needing no tenant, run on every push and pull request. Each exists because
-something shipped broken. Functional testing needs a tenant and is done by hand.
+something shipped broken.
+
+For functional testing against a real tenant:
+
+```powershell
+./tests/Invoke-LiveTests.ps1
+```
+
+Signs in the same way the app does, then runs every production tool - isolated per tool,
+in its own runspace, exactly like a live job - and reports pass or fail for each. Needs a
+real tenant and a couple of real device names, so it never runs in CI; run it by hand
+before a release.
 
 ## Licence
 

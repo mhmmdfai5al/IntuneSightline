@@ -1,0 +1,7 @@
+[
+  {
+    "when": { "fieldId": "writeHtml", "value": true },
+    "expectFilePattern": "*.html",
+    "note": "An HTML report is expected alongside the workbook whenever a journey tool's writeHtml is on."
+  }
+]

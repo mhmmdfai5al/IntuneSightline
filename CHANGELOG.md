@@ -8,12 +8,60 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
-- `docs/images/launch-page.png` and `docs/images/connect-page.png` in the README, and
-  `docs/samples/` - one real output file per tool (four HTML journey reports, four
-  workbooks), built against a fictional tenant so a visitor can see the actual shape
-  of every tool's output before running anything.
+- `tests/Invoke-LiveTests.ps1` - a functional test script for the eight production
+  tools against a real tenant. Signs in once using the app's own real PKCE flow,
+  then runs each tool in its own isolated runspace (mirroring exactly how a live
+  job is isolated in `core/Jobs.ps1`), so two tools' same-named local helpers can
+  never collide. A tool passes if it completes without a thrown exception, its own
+  result status is not "Failed", and its declared output path actually exists
+  afterward. Prompts once per platform for a real device to test the journey
+  tools against; the tenant-wide tools need no input. Prints a summary table and
+  writes a timestamped log. Needs a real tenant, so it never runs in CI.
+- The live test script now sweeps every boolean and select field a tool declares in
+  its own manifest, not just the default parameter set - one field varied per case
+  against an otherwise-default baseline, so a failure names the one input that
+  changed. A capability added to any tool's manifest tomorrow is tested on the very
+  next run, with no change to this script. Text fields and multiselects stay at
+  their default, since the script has no domain knowledge to fill them meaningfully.
+- `tests/live-test-expectations.json` - a small, centrally maintained set of
+  file-existence rules the live test script checks after a case's baseline pass
+  already holds. A rule says "when this field is set to this value, a file
+  matching this pattern should exist" - checked with Test-Path against a glob,
+  nothing more. It never opens a file to look inside it: whether a value is
+  correct stays a human's call, always. One rule to start - writeHtml=true
+  should produce an .html file - and more can be added to this one file as
+  they're identified, rather than as new scripts.
+
+## [1.1.0] - 2026-09-22
+
+Two real, user-facing changes, plus an integrity fix to the codebase itself found
+while investigating an unrelated, explicitly reverted piece of work.
+
+### Changed
+- Failure reasons are now shown next to "incomplete" everywhere a coverage table
+  appears - the launch page, every HTML report, and the workbook export. Previously
+  the bare word "INCOMPLETE" gave no way to tell a permission gap from a throttle
+  from a genuinely empty result; it now reads, for example, "0 item(s), incomplete
+  : 403 (Forbidden)." - the HTTP code and reason only, no explanatory prose, since
+  the audience already knows what a 403 means.
+
+### Fixed
+- Windows device journey never filtered its device search by platform, so a device
+  name shared with a Mac or Android device could return the wrong one. Now scoped
+  to Windows devices only, matching how every other platform's journey tool already
+  worked.
+- `core/Graph.ps1` contained a genuine duplicate: three functions were each defined
+  twice, identically. PowerShell silently uses the last definition, so this was
+  correct by luck rather than by a passing check - the duplication itself had gone
+  undetected across several builds. Rebuilt with exactly one copy of each function.
+- The project's own duplicate-function check used a regex that truncated function
+  names at the first digit, weakening it for any name containing one (the codebase
+  already has one: `...Base64Script`). Two distinct functions sharing a prefix
+  before a digit would have been falsely flagged as duplicates. Fixed to allow
+  digits in the checked portion of a name.
 
 ## [1.0.0] - 2026-09-18
+ - 2026-09-18
 
 Three new platforms, a themed interface across the launch page and every HTML
 report, and a launch page reorganised around the Intune admin centre's own

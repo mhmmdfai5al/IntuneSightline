@@ -1,0 +1,51 @@
+{
+  "id": "compliance-failure-breakdown",
+  "name": "Compliance failure breakdown",
+  "description": "Which settings are actually causing non-compliance, ranked by how many devices they affect.",
+  "note": "The overview is always cheap, regardless of fleet size, because it reads a tenant-wide aggregate rather than walking devices one at a time. Drilling into a setting to see which devices are affected is also cheap. Fetching each device's actual failure reason is not - it is one Graph call per device and is opt-in, with its own cost shown before it runs.",
+  "category": "Assignments",
+  "order": 3,
+  "version": "1.0.0",
+  "entryPoint": "Invoke-Tool.ps1",
+  "requiredScopes": [
+    "DeviceManagementConfiguration.Read.All",
+    "DeviceManagementManagedDevices.Read.All"
+  ],
+  "fields": [
+    {
+      "id": "platform",
+      "type": "select",
+      "label": "Platform",
+      "required": true,
+      "options": [
+        "Windows",
+        "iOS/iPadOS",
+        "macOS",
+        "Android"
+      ],
+      "default": "Windows",
+      "hint": "One platform per run, since a failing setting on one platform rarely means anything on another."
+    },
+    {
+      "id": "drillSetting",
+      "type": "text",
+      "label": "Setting to drill into (optional)",
+      "placeholder": "Leave blank for the ranked overview only",
+      "hint": "Exact setting name, as shown in the overview. Lists which devices are affected - cheap, one call regardless of how many devices."
+    },
+    {
+      "id": "includeReasons",
+      "type": "boolean",
+      "label": "Fetch each device's actual failure reason (needs a setting above)",
+      "default": false,
+      "hint": "One Graph call per affected device. A setting failing on thousands of devices means thousands of calls - only enable this once you have narrowed to one setting you actually need the reason for."
+    },
+    {
+      "id": "writeHtml",
+      "type": "boolean",
+      "label": "Also write an interactive HTML report",
+      "default": true
+    }
+  ],
+  "hidden": true
+}

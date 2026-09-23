@@ -281,7 +281,7 @@ function ConvertTo-SightlineProvenanceRows {
     foreach ($entry in @($Provenance.Coverage)) {
         $state = if ($entry.Complete) { 'complete' } else { 'INCOMPLETE' }
         $detail = "$($entry.Count) item(s), $state"
-        if (-not $entry.Complete -and $entry.Failure) { $detail += " - $($entry.Failure)" }
+        if (-not $entry.Complete -and $entry.Failure) { $detail += " : $($entry.Failure)" }
         & $add "  $($entry.Source)" $detail
     }
 

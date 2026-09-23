@@ -472,9 +472,14 @@ function renderResult(container, job) {
     result.Coverage.forEach(c => {
       const line = document.createElement('div');
       const state = c.Complete ? 'complete' : 'incomplete';
+      // The bare word "incomplete" says something went wrong but not what -
+      // indistinguishable from a source that is simply empty. Showing the
+      // actual reason lets the reader judge for themselves whether it is a
+      // permission gap, a throttle, or something else.
+      const reasonText = (!c.Complete && c.Failure) ? ' : ' + c.Failure : '';
       line.innerHTML = '<span class="' + state + '"></span>';
       line.querySelector('span').textContent =
-        c.Source + ' — ' + c.Count + ' item(s), ' + state;
+        c.Source + ' — ' + c.Count + ' item(s), ' + state + reasonText;
       cov.appendChild(line);
     });
     box.appendChild(cov);

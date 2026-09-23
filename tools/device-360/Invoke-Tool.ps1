@@ -252,7 +252,7 @@ function Invoke-Tool {
                 })
             }
             if (-not $detected.Complete -and $detected.Failure) {
-                $warnings.Add("$($device.deviceName): installed apps could not be read - $($detected.Failure)")
+                $warnings.Add("$($device.deviceName): installed apps could not be read : $($detected.Failure)")
             }
         }
 

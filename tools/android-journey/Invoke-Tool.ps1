@@ -524,8 +524,14 @@ function New-JourneyHtmlReport {
     $coverage = [System.Text.StringBuilder]::new()
     foreach ($entry in @($Provenance.Coverage)) {
         $state = if ($entry.Complete) { 'complete' } else { 'INCOMPLETE' }
+        # The bare word hides why a source is incomplete - indistinguishable
+        # from a source that is simply empty. The actual reason is already
+        # captured on every coverage entry; showing it here means the reader
+        # can tell a permission gap from a throttle from a genuinely empty
+        # result, instead of guessing from one red word.
+        $reasonText = if (-not $entry.Complete -and $entry.Failure) { ' : ' + (& $e $entry.Failure) } else { '' }
         [void]$coverage.Append('<tr><td>' + (& $e $entry.Source) + '</td><td>' + (& $e $entry.Count) +
-            '</td><td class="' + $(if ($entry.Complete) { 'ok' } else { 'bad' }) + '">' + $state + '</td></tr>')
+            '</td><td class="' + $(if ($entry.Complete) { 'ok' } else { 'bad' }) + '">' + $state + $reasonText + '</td></tr>')
     }
     $warn = [System.Text.StringBuilder]::new()
     foreach ($w in @($Provenance.Warnings)) { [void]$warn.Append('<li>' + (& $e $w) + '</li>') }

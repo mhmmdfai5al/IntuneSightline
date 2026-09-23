@@ -16,10 +16,10 @@
     {
       "id": "serialNumbers",
       "type": "text",
-      "label": "Serial number or device name, or two separated by a comma",
+      "label": "Device name, serial number, Intune device ID, or Entra device ID, or two separated by a comma",
       "required": true,
       "placeholder": "5CG1234ABC, or LAPTOP-4417",
-      "hint": "One device to trace its journey, two to compare them. Serial numbers and Intune device names are both accepted and can be mixed. Exact match, case-insensitive."
+      "hint": "One device to trace its journey, two to compare them. Any of name, serial number, Intune device ID or Entra device ID is accepted, and can be mixed. Names and serials are matched exactly; a GUID is tried as an Intune device ID first, then an Entra device ID."
     },
     {
       "id": "writeHtml",

@@ -20,7 +20,7 @@ $psFiles = @(Get-ChildItem -Path $Root -Recurse -Filter '*.ps1' |
 
 # --- 1. A function defined twice silently overrides the first -----------------
 foreach ($file in $psFiles) {
-    $names = [regex]::Matches((Get-Content -Raw $file.FullName), '(?m)^\s*function ([A-Za-z]+-[A-Za-z]+)') |
+    $names = [regex]::Matches((Get-Content -Raw $file.FullName), '(?m)^\s*function ([A-Za-z]+-[A-Za-z0-9]+)') |
         ForEach-Object { $_.Groups[1].Value }
     $dupes = @($names | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })
     if ($dupes.Count -gt 0) { Add-Failure "$($file.Name): duplicate function definition - $($dupes -join ', ')" }
@@ -166,7 +166,7 @@ foreach ($dir in Get-ChildItem -Path (Join-Path $Root 'tools') -Directory) {
 # another's code passed the check and failed at runtime.
 $coreFunctions = @()
 foreach ($file in Get-ChildItem -Path (Join-Path $Root 'core') -Filter '*.ps1') {
-    $coreFunctions += [regex]::Matches((Get-Content -Raw $file.FullName), 'function ([A-Za-z]+-[A-Za-z]+)') |
+    $coreFunctions += [regex]::Matches((Get-Content -Raw $file.FullName), 'function ([A-Za-z]+-[A-Za-z0-9]+)') |
         ForEach-Object { $_.Groups[1].Value }
 }
 
@@ -175,9 +175,9 @@ foreach ($dir in Get-ChildItem -Path (Join-Path $Root 'tools') -Directory) {
     if (-not (Test-Path $entry)) { continue }
 
     $code  = Get-Content -Raw $entry
-    $local = @([regex]::Matches($code, 'function ([A-Za-z]+-[A-Za-z]+)') | ForEach-Object { $_.Groups[1].Value })
+    $local = @([regex]::Matches($code, 'function ([A-Za-z]+-[A-Za-z0-9]+)') | ForEach-Object { $_.Groups[1].Value })
 
-    foreach ($call in [regex]::Matches($code, '(?<![-\w])([A-Za-z]+-(?:Sightline|Journey)[A-Za-z]*)')) {
+    foreach ($call in [regex]::Matches($code, '(?<![-\w])([A-Za-z]+-(?:Sightline|Journey)[A-Za-z0-9]*)')) {
         $name = $call.Groups[1].Value
         if ($local -contains $name) { continue }
         if ($coreFunctions -contains $name) { continue }
@@ -199,6 +199,30 @@ foreach ($file in $textFiles) {
         if ($value -eq '14d82eec-204b-4c2f-b7e8-296a70dab67e') { continue }
         if ($value -eq '00000000-0000-0000-0000-000000000000') { continue }
         Add-Failure "$($file.Name): contains a GUID ($value). Tenant and client identifiers must not be committed."
+    }
+}
+
+# --- 9. Raw CSS or JS never poured directly into a double-quoted string -------
+# A tool that generates HTML shipped once with a stylesheet poured directly
+# into a double-quoted Append("<style>...") call spanning many lines. The
+# first quote character already present in that content was read by
+# PowerShell as the string's own closing quote, and everything after it
+# became a cascade of parse errors. This project has no PowerShell
+# interpreter to catch that at build time, so this checks for the shape of
+# the mistake instead: an Append("...") whose double-quoted argument does not
+# close on the same line it opened almost certainly has raw markup poured in
+# directly, rather than a variable holding a safely single-quoted here-string.
+foreach ($file in Get-ChildItem -Path (Join-Path $Root 'tools') -Recurse -Filter 'Invoke-Tool.ps1') {
+    $text = Get-Content -Raw $file.FullName
+    foreach ($match in [regex]::Matches($text, 'Append\("')) {
+        $i = $match.Index + $match.Length
+        $lineEnd = $text.IndexOf([char]10, $i)
+        if ($lineEnd -lt 0) { continue }
+        $restOfLine = $text.Substring($i, $lineEnd - $i)
+        if ($restOfLine -notmatch '"\)') {
+            $line = ($text.Substring(0, $match.Index) -split [char]10).Count
+            Add-Failure ($file.Name + ':' + $line + ' - a multi-line double-quoted Append call was found. Raw content belongs in a single-quoted here-string, referenced by variable, never poured directly into a double-quoted string.')
+        }
     }
 }
 

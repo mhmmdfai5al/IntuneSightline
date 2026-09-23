@@ -3,49 +3,6 @@ Set-StrictMode -Version Latest
 $ToolId      = 'device-journey'
 $ToolVersion = '1.0.0'
 
-function Find-SightlineDeviceRecord {
-    <#
-        Resolves a device from its Intune record, by name or serial.
-
-        The device comes first and Autopilot second. Starting from an Autopilot
-        registration excluded every co-managed, hybrid joined and manually
-        enrolled device, which is most of a typical estate.
-    #>
-    param([Parameter(Mandatory)] [string] $Query)
-
-    $base    = 'https://graph.microsoft.com/beta/deviceManagement'
-    $escaped = $Query.Replace("'", "''")
-    $select  = 'id,deviceName,serialNumber,azureADDeviceId,operatingSystem,osVersion,' +
-               'userPrincipalName,userDisplayName,managedDeviceOwnerType,joinType,' +
-               'deviceEnrollmentType,managementAgent,enrolledDateTime,lastSyncDateTime,' +
-               'model,manufacturer,complianceState'
-
-    foreach ($field in @('deviceName', 'serialNumber')) {
-        try {
-            $result = Invoke-SightlineGraphRequest `
-                -Uri "$base/managedDevices?`$filter=$field eq '$escaped'&`$select=$select"
-            $hits = @($result.value)
-
-            if ($hits.Count -gt 1) {
-                $list = (@($hits | ForEach-Object { "$($_.deviceName) [$($_.serialNumber)]" }) -join '; ')
-                return [pscustomobject]@{
-                    Device = $null
-                    Problem = "'$Query' matched $($hits.Count) devices: $list. Use a serial number."
-                }
-            }
-            if ($hits.Count -eq 1) {
-                return [pscustomobject]@{ Device = $hits[0]; Problem = $null }
-            }
-        }
-        catch { continue }
-    }
-
-    return [pscustomobject]@{
-        Device  = $null
-        Problem = "no enrolled device matched '$Query', by name or serial number. Both are matched exactly."
-    }
-}
-
 function Get-SightlineDeviceOrigin {
     <#
         How the device came to exist in the directory, and who put it there.
@@ -458,8 +415,14 @@ function New-JourneyHtmlReport {
     $coverage = [System.Text.StringBuilder]::new()
     foreach ($entry in @($Provenance.Coverage)) {
         $state = if ($entry.Complete) { 'complete' } else { 'INCOMPLETE' }
+        # The bare word hides why a source is incomplete - indistinguishable
+        # from a source that is simply empty. The actual reason is already
+        # captured on every coverage entry; showing it here means the reader
+        # can tell a permission gap from a throttle from a genuinely empty
+        # result, instead of guessing from one red word.
+        $reasonText = if (-not $entry.Complete -and $entry.Failure) { ' : ' + (& $e $entry.Failure) } else { '' }
         [void]$coverage.Append('<tr><td>' + (& $e $entry.Source) + '</td><td>' + (& $e $entry.Count) +
-            '</td><td class="' + $(if ($entry.Complete) { 'ok' } else { 'bad' }) + '">' + $state + '</td></tr>')
+            '</td><td class="' + $(if ($entry.Complete) { 'ok' } else { 'bad' }) + '">' + $state + $reasonText + '</td></tr>')
     }
     $warn = [System.Text.StringBuilder]::new()
     foreach ($w in @($Provenance.Warnings)) { [void]$warn.Append('<li>' + (& $e $w) + '</li>') }
@@ -769,6 +732,43 @@ document.querySelectorAll("li.zero").forEach(function(l){l.style.display="none"}
 
     [void]$h.Append('<script>' + $js + '</script></main></body></html>')
     return $h.ToString()
+}
+
+function Find-SightlineDeviceRecord {
+    <#
+        Resolves an enrolled Windows device by name or serial.
+
+        Platform-filtered: an unfiltered search could return a Mac or
+        Android device sharing the same name as the Windows one intended.
+    #>
+    param([Parameter(Mandatory)] [string] $Query)
+
+    $base    = 'https://graph.microsoft.com/beta/deviceManagement'
+    $escaped = $Query.Replace("'", "''")
+    $select  = 'id,deviceName,serialNumber,azureADDeviceId,operatingSystem,osVersion,' +
+               'userPrincipalName,userDisplayName,managedDeviceOwnerType,joinType,' +
+               'deviceEnrollmentType,managementAgent,enrolledDateTime,lastSyncDateTime,' +
+               'model,manufacturer,complianceState'
+
+    foreach ($field in @('deviceName', 'serialNumber')) {
+        try {
+            $result = Invoke-SightlineGraphRequest `
+                -Uri "$base/managedDevices?`$filter=operatingSystem eq 'Windows' and $field eq '$escaped'&`$select=$select"
+            $hits = @($result.value)
+
+            if ($hits.Count -gt 1) {
+                $list = (@($hits | ForEach-Object { "$($_.deviceName) [$($_.serialNumber)]" }) -join '; ')
+                return [pscustomobject]@{ Device = $null; Problem = "'$Query' matched $($hits.Count) devices: $list. Use a serial number." }
+            }
+            if ($hits.Count -eq 1) { return [pscustomobject]@{ Device = $hits[0]; Problem = $null } }
+        }
+        catch { continue }
+    }
+
+    return [pscustomobject]@{
+        Device  = $null
+        Problem = "no enrolled Windows device matched '$Query', by name or serial number. Both are matched exactly."
+    }
 }
 
 function Invoke-Tool {
