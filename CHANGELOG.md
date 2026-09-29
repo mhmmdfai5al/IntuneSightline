@@ -7,6 +7,13 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-22
+
+Two real, user-facing changes, an integrity fix to the codebase itself found while
+investigating an unrelated, explicitly reverted piece of work, and a set of
+developer-facing additions that don't change the app's own behaviour: a functional
+test harness, a repo-hygiene fix, and a proper architecture diagram.
+
 ### Added
 - `tests/Invoke-LiveTests.ps1` - a functional test script for the eight production
   tools against a real tenant. Signs in once using the app's own real PKCE flow,
@@ -17,7 +24,7 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   afterward. Prompts once per platform for a real device to test the journey
   tools against; the tenant-wide tools need no input. Prints a summary table and
   writes a timestamped log. Needs a real tenant, so it never runs in CI.
-- The live test script now sweeps every boolean and select field a tool declares in
+- The live test script sweeps every boolean and select field a tool declares in
   its own manifest, not just the default parameter set - one field varied per case
   against an otherwise-default baseline, so a failure names the one input that
   changed. A capability added to any tool's manifest tomorrow is tested on the very
@@ -31,11 +38,15 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   correct stays a human's call, always. One rule to start - writeHtml=true
   should produce an .html file - and more can be added to this one file as
   they're identified, rather than as new scripts.
-
-## [1.1.0] - 2026-09-22
-
-Two real, user-facing changes, plus an integrity fix to the codebase itself found
-while investigating an unrelated, explicitly reverted piece of work.
+- `.gitattributes`, declaring `.png`, `.jpg`, `.xlsx` and `.zip` as binary explicitly.
+  Without it, Git relies on its own heuristics to decide whether a file is text or
+  binary - which had already produced real corruption once: a PNG byte-correct in
+  every packaged zip arrived broken after a git push. The screenshots in
+  `docs/images/` will need re-adding from a clean zip once this is in place, since
+  the fix prevents future corruption but doesn't repair a copy already damaged in
+  git history.
+- `docs/images/architecture.svg` - the four-layer architecture diagram, replacing
+  the ASCII version in `docs/architecture.md`.
 
 ### Changed
 - Failure reasons are now shown next to "incomplete" everywhere a coverage table
@@ -61,7 +72,6 @@ while investigating an unrelated, explicitly reverted piece of work.
   digits in the checked portion of a name.
 
 ## [1.0.0] - 2026-09-18
- - 2026-09-18
 
 Three new platforms, a themed interface across the launch page and every HTML
 report, and a launch page reorganised around the Intune admin centre's own
