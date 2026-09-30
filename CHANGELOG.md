@@ -8,6 +8,17 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `.gitattributes`, declaring `.png`, `.jpg`, `.xlsx` and `.zip` as binary explicitly.
+  Without it, Git relies on its own heuristics to decide whether a file is text or
+  binary - which had already produced real corruption once: a PNG byte-correct in
+  every packaged zip arrived broken after a git push. The screenshots in
+  `docs/images/` will need re-adding from a clean zip once this is in place, since
+  the fix prevents future corruption but doesn't repair a copy already damaged in
+  git history.
+- `docs/images/architecture.svg` - the four-layer architecture diagram, replacing
+  the ASCII version in `docs/architecture.md`.
+
+### Added
 - `tests/Invoke-LiveTests.ps1` - a functional test script for the eight production
   tools against a real tenant. Signs in once using the app's own real PKCE flow,
   then runs each tool in its own isolated runspace (mirroring exactly how a live
@@ -32,7 +43,7 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   should produce an .html file - and more can be added to this one file as
   they're identified, rather than as new scripts.
 
-## [1.1.0] - 2026-09-22
+## [1.1.1] - 2026-09-22
 
 Two real, user-facing changes, plus an integrity fix to the codebase itself found
 while investigating an unrelated, explicitly reverted piece of work.

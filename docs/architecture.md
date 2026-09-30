@@ -2,11 +2,7 @@
 
 ## Four layers, one direction
 
-```
-browser  ──HTTP 127.0.0.1──  shell  ──dispatch──  tools  ──calls──  core
-                                                                      │
-                                                        Graph (read) ─┴─ files out
-```
+![Four layers: browser, shell, tools, core, then Graph and files out](images/architecture.svg)
 
 Calls only ever run left to right. Core never calls a tool; the shell never reaches past
 a tool into Graph. The property that matters is that adding the twentieth tool costs what
