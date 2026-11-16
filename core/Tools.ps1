@@ -1,6 +1,6 @@
 Set-StrictMode -Version Latest
 
-$script:SightlineFieldTypes = @('text', 'boolean', 'path', 'select', 'multiselect', 'number')
+$script:SightlineFieldTypes = @('text', 'boolean', 'path', 'select', 'multiselect', 'number', 'file')
 $script:SightlineWarnedTools = @{}
 
 function Write-SightlineToolWarning {

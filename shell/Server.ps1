@@ -190,9 +190,33 @@ function Invoke-SightlineRoute {
                     version        = $_.Version
                     requiredScopes = $_.RequiredScopes
                     fields         = $_.Fields
+                    hasTemplate    = (Test-Path (Join-Path $_.Folder 'template.csv'))
                 }
             }
             Write-SightlineResponse -Context $Context -Object @{ tools = @($tools) }
+            return
+        }
+
+        '^GET /api/tools/[a-z0-9-]+/template$' {
+            # Auto-detected, not manifest-declared: a tool that ships its own
+            # template.csv gets a download link for free, with no new field
+            # every other tool would have to ignore.
+            $toolId = ($Context.Request.Url.AbsolutePath -split '/')[3]
+            $tools  = @(Get-SightlineTools -ToolsRoot $ToolsRoot)
+            $tool   = $tools | Where-Object { $_.Id -eq $toolId } | Select-Object -First 1
+            $templatePath = if ($tool) { Join-Path $tool.Folder 'template.csv' } else { $null }
+
+            if (-not $templatePath -or -not (Test-Path $templatePath)) {
+                Write-SightlineResponse -Context $Context -StatusCode 404 -Object @{ error = 'No template for this tool.' }
+                return
+            }
+
+            $bytes = [System.IO.File]::ReadAllBytes($templatePath)
+            $Context.Response.ContentType = 'text/csv'
+            $Context.Response.AddHeader('Content-Disposition', "attachment; filename=`"$toolId-template.csv`"")
+            $Context.Response.ContentLength64 = $bytes.Length
+            $Context.Response.OutputStream.Write($bytes, 0, $bytes.Length)
+            $Context.Response.OutputStream.Close()
             return
         }
 
@@ -226,6 +250,48 @@ function Invoke-SightlineRoute {
             }
             catch {
                 Write-SightlineResponse -Context $Context -StatusCode 400 -Object @{ error = $_.Exception.Message }
+            }
+            return
+        }
+
+        '^POST /api/upload$' {
+            # File upload is a core capability, not one tool's private plumbing -
+            # any tool declaring a "file" field gets this for free. Deliberately
+            # simple: the raw file bytes as the whole request body, the original
+            # filename in a header. Not multipart/form-data - HttpListener has no
+            # native parser for that, and there is nothing to gain building one
+            # for a form that only ever carries a single file.
+            $filename = $Context.Request.Headers['X-Sightline-Filename']
+            if ([string]::IsNullOrWhiteSpace($filename)) {
+                Write-SightlineResponse -Context $Context -StatusCode 400 -Object @{ error = 'X-Sightline-Filename header is required.' }
+                return
+            }
+
+            # The name travels only to choose an extension and give the tool a
+            # readable label - stripped to its extension and a random stem so it
+            # is never used as a path component itself.
+            $ext  = [System.IO.Path]::GetExtension($filename)
+            if ($ext -notin @('.csv')) {
+                Write-SightlineResponse -Context $Context -StatusCode 400 -Object @{ error = "Only .csv files are accepted, not '$ext'." }
+                return
+            }
+
+            $stagingRoot = Join-Path (Get-SightlineOutputRoot) '_uploads'
+            New-Item -ItemType Directory -Path $stagingRoot -Force | Out-Null
+            $stagedName = [guid]::NewGuid().ToString('N') + $ext
+            $stagedPath = Join-Path $stagingRoot $stagedName
+
+            try {
+                $bytes = Read-SightlineRequestBytes -Context $Context
+                if ($bytes.Length -eq 0) {
+                    Write-SightlineResponse -Context $Context -StatusCode 400 -Object @{ error = 'The uploaded file was empty.' }
+                    return
+                }
+                [System.IO.File]::WriteAllBytes($stagedPath, $bytes)
+                Write-SightlineResponse -Context $Context -Object @{ path = $stagedPath; originalName = $filename; bytes = $bytes.Length }
+            }
+            catch {
+                Write-SightlineResponse -Context $Context -StatusCode 500 -Object @{ error = $_.Exception.Message }
             }
             return
         }
@@ -281,6 +347,19 @@ function Read-SightlineRequestBody {
 
     if ([string]::IsNullOrWhiteSpace($raw)) { return [pscustomobject]@{} }
     return $raw | ConvertFrom-Json
+}
+
+function Read-SightlineRequestBytes {
+    # The byte-for-byte counterpart to Read-SightlineRequestBody, for the one
+    # endpoint whose body is a file rather than JSON.
+    param([Parameter(Mandatory)] $Context)
+
+    $stream = [System.IO.MemoryStream]::new()
+    try {
+        $Context.Request.InputStream.CopyTo($stream)
+        return $stream.ToArray()
+    }
+    finally { $stream.Dispose() }
 }
 
 function Write-SightlineResponse {

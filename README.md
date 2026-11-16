@@ -1,9 +1,9 @@
 # IntuneSightline
 
-Read-only reporting for Microsoft Intune. Six tools that answer questions the admin
+Read-only reporting for Microsoft Intune. Focused tools that answer questions the admin
 center answers badly, and write the answer to a workbook or a self-contained HTML page.
 
-No modules to install. No app registration required. Nothing writes to your tenant.
+No modules to install. Nothing writes to your tenant.
 
 ![IntuneSightline launch page](docs/images/launch-page.png)
 
@@ -14,17 +14,26 @@ No modules to install. No app registration required. Nothing writes to your tena
 
 </details>
 
-Every tool's output for this same launch page is in [`docs/samples`](docs/samples) -
-fabricated data, a fictional tenant, nothing real. Open one to see the shape of the
-output before running anything against your own tenant.
+Sample output is in [`docs/samples`](docs/samples) - fabricated data, a fictional
+tenant, nothing real. Open one to see the shape of the output before running anything
+against your own tenant.
+
+Download the latest zip from [Releases](../../releases/latest), extract it, and run:
 
 ```powershell
 ./Start-IntuneSightline.ps1
 ```
 
+On Windows, files extracted from a downloaded zip are marked as coming from the internet
+and PowerShell will refuse to run them. Unblock them once, from the extracted folder:
+
+```powershell
+Get-ChildItem -Recurse | Unblock-File
+```
+
 A preflight check runs, then a page opens at `127.0.0.1:8787`. Enter your tenant ID and
-the application ID of a registration with delegated Intune read permissions, press
-Connect, and sign in. Both values are remembered.
+the application ID of a registration with the permissions listed under
+[Prerequisites](#prerequisites), press Connect, and sign in. Both values are remembered.
 
 ## The problem
 
@@ -40,6 +49,7 @@ Each tool here answers one of those.
 |---|---|
 | Android device journey | How an Android device was enrolled, the groups that resulted, and everything that reaches it |
 | Assignment inventory | One row per assignment: what targets what, across the whole tenant |
+| Bulk group membership export | Resolves a list of device names or serial numbers to the Entra Object IDs needed to bulk-add them to a group |
 | Change history | Who changed what and when, from the Intune audit log. Includes deletions and renames |
 | Orphaned and unassigned | Finds policies, scripts and filters that nothing is assigned to or that target nothing |
 | Recover scripts | Pulls script bodies out of Intune and writes them to disk as files |
@@ -51,7 +61,7 @@ Each tool here answers one of those.
 
 **It does not render reports in the browser.** Tools write files. The page shows progress
 and a link to the output folder, nothing more. That keeps the interface the same size
-whether there are six tools or sixty.
+however many tools there are.
 
 **It does not write to your tenant.** Every Graph call is a read, and a tool declaring a
 write permission is rejected when it loads.
@@ -77,17 +87,14 @@ get different files.
 
 Every export therefore carries the tenant, the collecting account, the permissions it
 held, and a per-source coverage list. A source marked `INCOMPLETE` means results absent
-from the export may still exist.
+from the export may still exist; the reason is shown beside it, for example
+`403 (Forbidden)`.
 
 Clean is not the same as complete, and the file says which one you have.
 
 ## Architecture
 
-```
-browser  ──HTTP 127.0.0.1──  shell  ──dispatch──  tools  ──calls──  core
-                                                                      │
-                                                        Graph (read) ─┴─ files out
-```
+![Four layers: browser, shell, tools, core, then Graph and files out](docs/images/architecture.svg)
 
 **shell** serves the page, builds each tool's form from its manifest, runs one job at a
 time in a background runspace, and relays progress. It contains no tool-specific code —
@@ -103,22 +110,43 @@ Platform differences — paths, opening files, launching a browser — live in o
 
 See [docs/architecture.md](docs/architecture.md) for the tool contract and the reasoning.
 
+## Prerequisites
+
+- PowerShell 7.0 or later. Tested on Windows and macOS; nothing in it is Windows-specific.
+- An Intune-licensed tenant.
+- An Entra app registration, with the delegated Microsoft Graph permissions below granted
+  admin consent. All are read-only.
+
+| Permission | Used for |
+|---|---|
+| `User.Read` | Your sign-in identity and the tenant name shown in every export |
+| `DeviceManagementManagedDevices.Read.All` | Finding devices by name or serial |
+| `DeviceManagementConfiguration.Read.All` | Policies, compliance, profiles and their assignments |
+| `DeviceManagementServiceConfig.Read.All` | Autopilot, ADE, enrolment profiles, enrolment and VPP tokens |
+| `DeviceManagementApps.Read.All` | Apps, app assignments, the audit log |
+| `DeviceManagementScripts.Read.All` | Remediation, platform and macOS shell scripts |
+| `DeviceManagementRBAC.Read.All` | Resolving Intune roles in Change history (on by default) |
+| `Group.Read.All` | Group names, membership and nesting |
+| `Directory.Read.All` | Entra device objects, registered owners, Object IDs for bulk membership, the app registration's name |
+| `User.ReadBasic.All` | User lookup in Change history |
+
+With all ten granted, no tool hits a permission gap. With fewer, the app still runs with
+whatever is consented; a missing permission shows either as a greyed-out tool or as an
+incomplete source in that report's coverage table.
+
+`DeviceManagementScripts.Read.All` is easy to miss. Microsoft moved the script endpoints
+onto it from `DeviceManagementConfiguration.Read.All` in July 2025, so a registration
+created before then will return `403 (Forbidden)` for scripts until it is added.
+
 ## Permissions
 
 Sign-in requests `https://graph.microsoft.com/.default`, which returns exactly the
 permissions your tenant has already consented for that application — no more. A tool
-whose permissions are missing is greyed out with the specific permission named, rather
-than failing partway through.
+whose declared permissions are missing is greyed out with the specific permission named,
+rather than failing partway through.
 
 Write permissions are dropped from the working set at sign-in and the discarded list is
 printed. See [SECURITY.md](SECURITY.md).
-
-## Requirements
-
-PowerShell 7.0 or later. An Intune-licensed tenant. An account with delegated read
-permissions on device management.
-
-Tested on Windows and macOS. Nothing in it is Windows-specific.
 
 ## Known limitations
 
@@ -141,7 +169,7 @@ Tested on Windows and macOS. Nothing in it is Windows-specific.
 ./tests/Invoke-Checks.ps1
 ```
 
-Static checks needing no tenant, run on every push and pull request. Each exists because
+Static checks needing no tenant, run on every push to `main` and every pull request. Each exists because
 something shipped broken.
 
 For functional testing against a real tenant:
@@ -150,10 +178,11 @@ For functional testing against a real tenant:
 ./tests/Invoke-LiveTests.ps1
 ```
 
-Signs in the same way the app does, then runs every production tool - isolated per tool,
-in its own runspace, exactly like a live job - and reports pass or fail for each. Needs a
-real tenant and a couple of real device names, so it never runs in CI; run it by hand
-before a release.
+Signs in the same way the app does, then runs every production tool across each of its
+options - isolated per tool, in its own runspace, exactly like a live job - and reports
+pass or fail for each. Asks for one real device per platform; leave any blank to skip
+that platform. Needs a real tenant, so it never runs in CI; run it by hand before a
+release.
 
 ## Licence
 

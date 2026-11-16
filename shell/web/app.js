@@ -228,6 +228,61 @@ function buildField(field) {
     return { node: wrap, read: () => inputs.filter(i => i.checked).map(i => i.value) };
   }
 
+  if (field.type === 'file') {
+    // The visible control is just a picker; the value Run actually reads
+    // lives on a hidden input carrying the server-side staged path, so this
+    // field behaves exactly like an existing "path" field to the tool -
+    // upload is a browser concern, not something the tool needs to know
+    // happened. Piggybacking on the existing data-required mechanism (below)
+    // means Run is disabled for the entire upload, not just an empty field.
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.id = id;
+    if (field.required) hidden.dataset.required = '1';
+
+    const picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = field.accept || '.csv';
+
+    const status = document.createElement('p');
+    status.className = 'hint';
+
+    picker.addEventListener('change', async () => {
+      const file = picker.files[0];
+      hidden.value = '';
+      hidden.dispatchEvent(new Event('input', { bubbles: true }));
+      if (!file) { status.textContent = ''; return; }
+
+      status.textContent = 'Uploading...';
+      status.classList.remove('bad');
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'X-Sightline-Filename': file.name },
+          body: file
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Upload failed.');
+
+        hidden.value = result.path;
+        status.textContent = 'Uploaded: ' + file.name;
+      } catch (err) {
+        status.textContent = err.message;
+        status.classList.add('bad');
+      }
+      hidden.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    wrap.append(hidden, picker, status);
+    if (field.hint) {
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = field.hint;
+      wrap.appendChild(hint);
+    }
+    return { node: wrap, read: () => hidden.value };
+  }
+
   const input = document.createElement('input');
   input.type = field.type === 'number' ? 'number' : 'text';
   input.id = id;
@@ -307,6 +362,14 @@ function renderTool(tool, options) {
     note.className = 'tool-note';
     note.textContent = tool.note;
     body.appendChild(note);
+  }
+
+  if (tool.hasTemplate) {
+    const templateLink = document.createElement('a');
+    templateLink.className = 'tool-note-link';
+    templateLink.href = '/api/tools/' + tool.id + '/template';
+    templateLink.textContent = 'Download template';
+    body.appendChild(templateLink);
   }
 
   const readers = {};

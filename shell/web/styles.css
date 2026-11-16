@@ -232,6 +232,15 @@ button.disconnect { background: var(--surface); color: var(--ink); border: 1px s
 .field input.invalid { border-color: var(--bad); }
 .hint.bad { color: var(--bad); }
 
+.tool-note-link {
+  display: inline-block;
+  margin: 4px 0 10px;
+  font-size: 12px;
+  color: var(--run);
+  text-decoration: none;
+}
+.tool-note-link:hover { text-decoration: underline; }
+
 .tool-note {
   margin: 12px 0 4px;
   padding: 9px 12px;

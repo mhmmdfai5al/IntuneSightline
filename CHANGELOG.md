@@ -7,6 +7,53 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- `.gitignore` excluded every `.xlsx` and `.csv`, so the four sample workbooks in
+  `docs/samples/` never reached the repository, and Bulk group membership's
+  `template.csv` would have been silently left out of every commit and release - its
+  download link would 404. Both are now excepted explicitly.
+- Live test logs, which record the tenant ID, were written inside the repo folder and not
+  ignored. Now ignored.
+- README: removed "No app registration required" - Connect rejects an empty client ID,
+  so one is always required. Removed the stale "Six tools" count. Pointed the quick start
+  at Releases, with the Windows `Unblock-File` step a downloaded zip needs. Replaced the
+  ASCII architecture diagram with the same image `docs/architecture.md` uses. Noted that
+  an incomplete source now shows its reason, and that CI runs on pushes to `main`.
+
+### Changed
+- README: "Requirements" replaced by a "Prerequisites" section listing all ten delegated
+  Graph permissions the app uses and what each is for, with a note on
+  `DeviceManagementScripts.Read.All` - split out by Microsoft in July 2025 and the
+  usual cause of a 403 on script sources in older app registrations.
+
+## [1.2.0] - 2026-09-30
+
+A new tool, and a new core capability that any future tool can reuse for free:
+file upload.
+
+### Added
+- File upload as a core capability, not one tool's private plumbing. A manifest
+  field declaring `type: "file"` gets a real browser file picker; the raw bytes
+  are POSTed to a new endpoint, staged to a temporary folder, and the tool
+  receives back a plain file path - identical to how an existing `path` field
+  already works. Deliberately not multipart/form-data, since PowerShell's
+  built-in web server has no native parser for it and there is no benefit here:
+  only ever one file at a time.
+- **Bulk group membership export** - uploads a CSV of device names or serial
+  numbers and resolves each to the Entra Object ID needed for Entra's own
+  "Bulk operations > Import members" feature on a group's Members page. The
+  output matches that feature's own template exactly - same column header, same
+  UTF-8-with-BOM and CRLF formatting, confirmed against a real file exported
+  from Entra rather than assumed from documentation - so it can be uploaded
+  there directly with no reformatting. A second sheet lists anything that
+  couldn't be matched, with why. Resolution is batched in three passes (name,
+  then serial for what's left, then the Entra Object ID lookup), not one
+  request per device. The uploaded file is deleted once the run finishes,
+  success or failure, since it may carry device or user information.
+- Auto-detected template downloads: a tool that ships its own `template.csv`
+  gets a download link on its card for free, with no new manifest field every
+  other tool would have to ignore.
+
 ### Added
 - `.gitattributes`, declaring `.png`, `.jpg`, `.xlsx` and `.zip` as binary explicitly.
   Without it, Git relies on its own heuristics to decide whether a file is text or
