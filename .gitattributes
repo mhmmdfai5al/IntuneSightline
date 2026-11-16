@@ -1,0 +1,14 @@
+# Without this file, Git relies on its own heuristics to decide whether a
+# file is text or binary. That usually works, but "usually" has already
+# caused real corruption once - a PNG that was byte-correct in every
+# packaged zip arrived broken after a git push. Declaring binary types
+# explicitly removes the ambiguity entirely, rather than trusting detection
+# to get it right every time.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.xlsx binary
+*.zip binary
+
+# Everything else in this repo is text and benefits from normal diffing -
+# left to Git's default handling, which is what we actually want for these.

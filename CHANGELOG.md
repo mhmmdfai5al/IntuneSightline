@@ -8,6 +8,10 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Fixed
+- CI failed on v1.2.0: the static checker kept its own list of allowed manifest field
+  types, which never gained the new `file` type, so it rejected Bulk group membership's
+  upload field. The checker now reads the list from `core/Tools.ps1`, so the two can't
+  drift again.
 - `.gitignore` excluded every `.xlsx` and `.csv`, so the four sample workbooks in
   `docs/samples/` never reached the repository, and Bulk group membership's
   `template.csv` would have been silently left out of every commit and release - its

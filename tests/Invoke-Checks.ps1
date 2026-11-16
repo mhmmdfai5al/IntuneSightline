@@ -81,7 +81,13 @@ foreach ($file in $psFiles) {
 # Sections mirror the Intune admin centre's own navigation. A tool with a
 # category outside this set would be rendered under "Other".
 $clusters = @('Devices', 'Assignments', 'Scripts', 'Audit')
-$types    = @('text', 'boolean', 'path', 'select', 'multiselect', 'number')
+# Field types come from core, not a copy kept here: a copy drifted once - the
+# app accepted a new "file" type while this check still rejected it, and CI
+# failed on a correct manifest.
+$typesLine = [regex]::Match((Get-Content -Raw (Join-Path $Root 'core/Tools.ps1')),
+    '\$script:SightlineFieldTypes\s*=\s*@\(([^)]*)\)')
+if (-not $typesLine.Success) { Add-Failure 'core/Tools.ps1: could not read $script:SightlineFieldTypes' }
+$types = @([regex]::Matches($typesLine.Groups[1].Value, "'([^']+)'") | ForEach-Object { $_.Groups[1].Value })
 
 foreach ($dir in Get-ChildItem -Path (Join-Path $Root 'tools') -Directory) {
     $manifestPath = Join-Path $dir.FullName 'manifest.json'

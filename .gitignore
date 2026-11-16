@@ -6,6 +6,15 @@ config.json
 *.xlsx
 _provenance.txt
 
+# Shipped files that share an extension with tool output. Without these
+# exceptions Git drops them silently: the sample workbooks never reached the
+# repo, and a tool's download template would 404 for anyone who clones it.
+!docs/samples/*.xlsx
+!tools/*/template.csv
+
+# Live test logs - they record the tenant ID
+live-test-*.log
+
 # OS noise
 .DS_Store
 Thumbs.db
