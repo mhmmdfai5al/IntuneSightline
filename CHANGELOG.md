@@ -7,33 +7,10 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Fixed
-- CI failed on v1.2.0: the static checker kept its own list of allowed manifest field
-  types, which never gained the new `file` type, so it rejected Bulk group membership's
-  upload field. The checker now reads the list from `core/Tools.ps1`, so the two can't
-  drift again.
-- `.gitignore` excluded every `.xlsx` and `.csv`, so the four sample workbooks in
-  `docs/samples/` never reached the repository, and Bulk group membership's
-  `template.csv` would have been silently left out of every commit and release - its
-  download link would 404. Both are now excepted explicitly.
-- Live test logs, which record the tenant ID, were written inside the repo folder and not
-  ignored. Now ignored.
-- README: removed "No app registration required" - Connect rejects an empty client ID,
-  so one is always required. Removed the stale "Six tools" count. Pointed the quick start
-  at Releases, with the Windows `Unblock-File` step a downloaded zip needs. Replaced the
-  ASCII architecture diagram with the same image `docs/architecture.md` uses. Noted that
-  an incomplete source now shows its reason, and that CI runs on pushes to `main`.
+## [1.2.0] - 2026-11-16
 
-### Changed
-- README: "Requirements" replaced by a "Prerequisites" section listing all ten delegated
-  Graph permissions the app uses and what each is for, with a note on
-  `DeviceManagementScripts.Read.All` - split out by Microsoft in July 2025 and the
-  usual cause of a 403 on script sources in older app registrations.
-
-## [1.2.0] - 2026-09-30
-
-A new tool, and a new core capability that any future tool can reuse for free:
-file upload.
+A new tool, a new core capability any future tool can reuse - file upload - and a
+README that now lists every permission the app needs.
 
 ### Added
 - File upload as a core capability, not one tool's private plumbing. A manifest
@@ -57,17 +34,36 @@ file upload.
 - Auto-detected template downloads: a tool that ships its own `template.csv`
   gets a download link on its card for free, with no new manifest field every
   other tool would have to ignore.
+- `.gitattributes`, declaring `.png`, `.jpg`, `.xlsx` and `.zip` as binary, so Git can't
+  mistake an image or workbook for text and corrupt it on commit.
 
-### Added
-- `.gitattributes`, declaring `.png`, `.jpg`, `.xlsx` and `.zip` as binary explicitly.
-  Without it, Git relies on its own heuristics to decide whether a file is text or
-  binary - which had already produced real corruption once: a PNG byte-correct in
-  every packaged zip arrived broken after a git push. The screenshots in
-  `docs/images/` will need re-adding from a clean zip once this is in place, since
-  the fix prevents future corruption but doesn't repair a copy already damaged in
-  git history.
-- `docs/images/architecture.svg` - the four-layer architecture diagram, replacing
-  the ASCII version in `docs/architecture.md`.
+### Changed
+- README: "Requirements" replaced by a "Prerequisites" section listing all ten delegated
+  Graph permissions the app uses and what each is for, with a note on
+  `DeviceManagementScripts.Read.All` - split out by Microsoft in July 2025 and the usual
+  cause of a 403 on script sources in older app registrations.
+- README: quick start now points to Releases and includes the Windows `Unblock-File`
+  step a downloaded zip needs. The architecture section uses the same diagram as
+  `docs/architecture.md`. An incomplete coverage source is documented as showing its
+  reason.
+- The static checker reads allowed manifest field types from `core/Tools.ps1` instead of
+  keeping its own copy, so the app and its checks cannot disagree.
+
+### Fixed
+- README said "No app registration required"; Connect rejects an empty client ID, so one
+  is always required. Also removed a stale tool count, and corrected that CI runs on
+  pushes to `main`.
+- `.gitignore` excluded every `.xlsx` and `.csv`, so the four sample workbooks in
+  `docs/samples/` had never reached the repository, and a tool's `template.csv` would
+  have been left out of every commit. Both are now excepted explicitly.
+- Live test logs, which record the tenant ID, were written inside the repo folder and not
+  ignored. Now ignored.
+
+## [1.1.1] - 2026-09-22
+
+Two user-facing changes, an integrity fix to the codebase, and developer-facing
+additions that don't change the app's behaviour: a functional test harness and a proper
+architecture diagram.
 
 ### Added
 - `tests/Invoke-LiveTests.ps1` - a functional test script for the eight production
@@ -79,7 +75,7 @@ file upload.
   afterward. Prompts once per platform for a real device to test the journey
   tools against; the tenant-wide tools need no input. Prints a summary table and
   writes a timestamped log. Needs a real tenant, so it never runs in CI.
-- The live test script now sweeps every boolean and select field a tool declares in
+- The live test script sweeps every boolean and select field a tool declares in
   its own manifest, not just the default parameter set - one field varied per case
   against an otherwise-default baseline, so a failure names the one input that
   changed. A capability added to any tool's manifest tomorrow is tested on the very
@@ -93,11 +89,8 @@ file upload.
   correct stays a human's call, always. One rule to start - writeHtml=true
   should produce an .html file - and more can be added to this one file as
   they're identified, rather than as new scripts.
-
-## [1.1.1] - 2026-09-22
-
-Two real, user-facing changes, plus an integrity fix to the codebase itself found
-while investigating an unrelated, explicitly reverted piece of work.
+- `docs/images/architecture.svg` - the four-layer architecture diagram, replacing
+  the ASCII version in `docs/architecture.md`.
 
 ### Changed
 - Failure reasons are now shown next to "incomplete" everywhere a coverage table
