@@ -7,6 +7,12 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- CI actions moved to Node 24 releases - `actions/checkout@v6` and
+  `softprops/action-gh-release@v3`. GitHub removed Node 20 from Actions runners in
+  September 2026; the old versions only kept working because runners forced them onto
+  Node 24, which is what the deprecation warning on every run was reporting.
+
 ## [1.2.0] - 2026-11-16
 
 A new tool, a new core capability any future tool can reuse - file upload - and a
