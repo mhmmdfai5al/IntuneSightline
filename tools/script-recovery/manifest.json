@@ -3,11 +3,27 @@
   "name": "Recover scripts",
   "description": "Pulls script bodies out of Intune and writes them to disk as files.",
   "category": "Scripts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "entryPoint": "Invoke-Tool.ps1",
   "requiredScopes": [
-    "DeviceManagementConfiguration.Read.All",
-    "DeviceManagementApps.Read.All"
+    [
+      "DeviceManagementScripts.Read.All",
+      "DeviceManagementApps.Read.All"
+    ]
+  ],
+  "optionalScopes": [
+    {
+      "scopes": [
+        "DeviceManagementScripts.Read.All"
+      ],
+      "affects": "platform, remediation and macOS scripts"
+    },
+    {
+      "scopes": [
+        "DeviceManagementApps.Read.All"
+      ],
+      "affects": "Win32 app scripts"
+    }
   ],
   "fields": [
     {

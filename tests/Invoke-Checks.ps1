@@ -2,7 +2,8 @@
 <#
     Static checks that need no tenant.
 
-    Each one exists because something shipped broken: duplicated function
+    Each one exists because something shipped broken: a script that did not
+    parse, duplicated function
     definitions that silently overrode edits, collections unrolling to scalars
     under StrictMode, .Add on an object that was not a list, and manifests
     declaring scopes or fields the tool never reads.
@@ -17,6 +18,18 @@ function Add-Failure { param([string] $Message) $failures.Add($Message) }
 
 $psFiles = @(Get-ChildItem -Path $Root -Recurse -Filter '*.ps1' |
     Where-Object { $_.FullName -notmatch '[\\/](tests|\.git)[\\/]' })
+
+# --- 0. Every script must parse ------------------------------------------------
+# The other checks read text with regexes and pass happily over a file the
+# PowerShell parser rejects. A tool that does not parse never loads.
+foreach ($file in @(Get-ChildItem -Path $Root -Recurse -Filter '*.ps1' |
+        Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' })) {
+    $tokens = $null; $parseErrors = $null
+    [void][System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$parseErrors)
+    foreach ($problem in @($parseErrors)) {
+        Add-Failure "$($file.Name):$($problem.Extent.StartLineNumber) - does not parse: $($problem.Message)"
+    }
+}
 
 # --- 1. A function defined twice silently overrides the first -----------------
 foreach ($file in $psFiles) {
@@ -99,8 +112,19 @@ foreach ($dir in Get-ChildItem -Path (Join-Path $Root 'tools') -Directory) {
 
     $code = Get-Content -Raw $entry
 
-    foreach ($scope in @($manifest.requiredScopes)) {
-        $parts = $scope -split '\.'
+    # Entries may be one scope or a list of alternatives, in requiredScopes
+    # and in each optionalScopes group alike. Every name is checked.
+    $scopeNames = @(@($manifest.requiredScopes) | ForEach-Object { $_ })
+    if ($manifest.PSObject.Properties.Name -contains 'optionalScopes') {
+        foreach ($group in @($manifest.optionalScopes)) {
+            if (-not ($group.PSObject.Properties.Name -contains 'affects') -or -not $group.affects) {
+                Add-Failure "$($manifest.id): an optionalScopes entry has no 'affects'"
+            }
+            $scopeNames += @(@($group.scopes) | ForEach-Object { $_ })
+        }
+    }
+    foreach ($scope in $scopeNames) {
+        $parts = ([string]$scope) -split '\.'
         if ($parts.Count -lt 2 -or -not $parts[1].StartsWith('Read') -or $parts[1] -match 'Write') {
             Add-Failure "$($manifest.id): '$scope' is not a read permission"
         }

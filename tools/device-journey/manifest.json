@@ -4,13 +4,36 @@
   "description": "How a Windows device was enrolled, the groups that resulted, and everything that reaches it.",
   "note": "Starts from the device, not from Autopilot. Works for any enrolled device - Autopilot, co-managed, hybrid joined or manually enrolled. Where an Autopilot registration exists its group tag is shown, because dynamic rules commonly match on it. Groups come from real directory membership rather than from reading rules, because rule text can be written many ways and would not be definitive. Give two devices to compare them.",
   "category": "Devices",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "entryPoint": "Invoke-Tool.ps1",
   "requiredScopes": [
     "DeviceManagementServiceConfig.Read.All",
     "DeviceManagementManagedDevices.Read.All",
     "DeviceManagementConfiguration.Read.All",
     "Group.Read.All"
+  ],
+  "optionalScopes": [
+    {
+      "scopes": [
+        [
+          "Device.Read.All",
+          "Directory.Read.All"
+        ]
+      ],
+      "affects": "group membership"
+    },
+    {
+      "scopes": [
+        "DeviceManagementScripts.Read.All"
+      ],
+      "affects": "scripts"
+    },
+    {
+      "scopes": [
+        "DeviceManagementApps.Read.All"
+      ],
+      "affects": "apps"
+    }
   ],
   "fields": [
     {

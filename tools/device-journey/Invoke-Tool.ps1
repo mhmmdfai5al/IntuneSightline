@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 
 $ToolId      = 'device-journey'
-$ToolVersion = '1.0.0'
+$ToolVersion = '1.0.1'
 
 function Get-SightlineDeviceOrigin {
     <#
@@ -654,7 +654,14 @@ document.querySelectorAll("li.zero").forEach(function(l){l.style.display="none"}
 
     $plural = { param($n, $one, $many) if ($n -eq 1) { $one } else { $many } }
 
-    $summaryLine = if ($directTotal -eq 0) {
+    $membershipGap = @(@($Provenance.Coverage) | Where-Object {
+        $_.Source -eq 'devices/{id}/transitiveMemberOf' -and -not $_.Complete
+    }) | Select-Object -First 1
+
+    $summaryLine = if ($membershipGap) {
+        'Group membership could not be read : ' + $membershipGap.Failure
+    }
+    elseif ($directTotal -eq 0) {
         'Not a member of any group. Nothing targeted at groups can reach it.'
     } else {
         # A single membership does not need a count repeating back at it, and
@@ -903,26 +910,38 @@ function Invoke-Tool {
     $nestedIn    = @{}   # group id -> group ids it is nested inside
     $groupsById  = @{}
     $tagBySerial = @{}
+    $membershipFailure = $null   # set when membership could not be read, so "no groups" is never claimed falsely
 
     foreach ($device in $found) {
         $dn      = $device.PSObject.Properties.Name
         $serial  = if ($dn -contains 'serialNumber' -and $device.serialNumber) { [string]$device.serialNumber } else { [string]$device.deviceName }
         $entraId = [string]$device.azureADDeviceId
 
+        $dirDevice = $null
         try {
             $dirDevice = Invoke-SightlineGraphRequest `
                 -Uri "https://graph.microsoft.com/v1.0/devices(deviceId='$entraId')?`$select=id,displayName,accountEnabled,approximateLastSignInDateTime"
         }
         catch {
-            $warnings.Add("$serial : no readable directory object - $($_.Exception.Message)")
-            $memberOf[$serial] = @()
-            continue
+            # 404 is a real answer (no directory object, so no groups); anything
+            # else means membership is unknown, not empty.
+            $reason = Get-SightlineErrorSummary -ErrorRecord $_
+            if ($reason -notlike '404*' -and -not $membershipFailure) { $membershipFailure = $reason }
+            $warnings.Add("$serial : no readable directory object : $reason")
+            $dirDevice = $null
         }
 
-        $groups = Get-SightlineGraphCollection `
-            -Uri "https://graph.microsoft.com/v1.0/devices/$($dirDevice.id)/transitiveMemberOf/microsoft.graph.group?`$select=id,displayName,membershipRule"
+        # Without a directory object the device still belongs in the report;
+        # it simply has no groups that can be read.
+        $groups = if ($dirDevice) {
+            Get-SightlineGraphCollection `
+                -Uri "https://graph.microsoft.com/v1.0/devices/$($dirDevice.id)/transitiveMemberOf/microsoft.graph.group?`$select=id,displayName,membershipRule"
+        } else {
+            [pscustomobject]@{ Items = @(); Complete = $true; Failure = $null }
+        }
 
         if (-not $groups.Complete) {
+            if (-not $membershipFailure) { $membershipFailure = $groups.Failure }
             $warnings.Add("$serial : group membership is incomplete, so some policies may be missing from this report.")
         }
 
@@ -937,6 +956,10 @@ function Invoke-Tool {
         # transitiveMemberOf flattens direct and inherited together. The forest
         # needs them apart: direct memberships are its roots, everything else
         # is reached by nesting and was never targeted at this device.
+        if (-not $dirDevice) {
+            $directOf[$serial] = @()
+        }
+        else {
         try {
             $direct = Get-SightlineGraphCollection `
                 -Uri "https://graph.microsoft.com/v1.0/devices/$($dirDevice.id)/memberOf/microsoft.graph.group?`$select=id"
@@ -945,6 +968,7 @@ function Invoke-Tool {
         catch {
             $directOf[$serial] = @()
             $warnings.Add("$serial : direct group membership could not be read, so the group tree may show inherited groups as direct.")
+        }
         }
 
         $autopilot = $apOf[$serial]
@@ -979,7 +1003,7 @@ function Invoke-Tool {
 
     $coverage.Add([pscustomobject]@{
         Source = 'devices/{id}/transitiveMemberOf'; Count = $groupsById.Count
-        Complete = $true; Failure = $null
+        Complete = (-not $membershipFailure); Failure = $membershipFailure
     })
 
     # Which of these groups sits inside which. Bounded by the groups this device

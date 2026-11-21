@@ -66,6 +66,11 @@ function Get-SightlineTools {
         $note = ''
         if ($manifest.PSObject.Properties.Name -contains 'note') { $note = [string]$manifest.note }
 
+        $optional = @()
+        if ($manifest.PSObject.Properties.Name -contains 'optionalScopes') {
+            $optional = @($manifest.optionalScopes)
+        }
+
         if ($manifest.PSObject.Properties.Name -contains 'hidden' -and $manifest.hidden) {
             continue
         }
@@ -88,6 +93,7 @@ function Get-SightlineTools {
             Category       = $manifest.category
             Version        = $manifest.version
             RequiredScopes = @($manifest.requiredScopes)
+            OptionalScopes = $optional
             Fields         = $fields
             EntryPointPath = $entryPath
             Folder         = $dir.FullName
@@ -108,10 +114,32 @@ function Test-SightlineManifest {
     }
 
     # A tool may only ever ask for read permissions. Enforced here so a
-    # contributed tool cannot quietly widen what the app requests.
+    # contributed tool cannot quietly widen what the app requests. An entry
+    # can be one scope or a list of alternatives; every name in it is checked.
+    $declared = [System.Collections.Generic.List[object]]::new()
     if ($names -contains 'requiredScopes') {
-        foreach ($scope in @($Manifest.requiredScopes)) {
-            $readOnly = @(Select-SightlineReadOnlyScope -Scopes @($scope))
+        foreach ($entry in @($Manifest.requiredScopes)) { $declared.Add($entry) }
+    }
+
+    # Optional scopes: the tool still runs without them, and "affects" says
+    # what is left out - shown on the tool's card, so it must be there.
+    if ($names -contains 'optionalScopes') {
+        foreach ($group in @($Manifest.optionalScopes)) {
+            $groupNames = $group.PSObject.Properties.Name
+            if ($groupNames -notcontains 'scopes' -or @($group.scopes).Count -eq 0) {
+                $problems.Add("optionalScopes entry needs 'scopes'")
+                continue
+            }
+            if ($groupNames -notcontains 'affects' -or [string]::IsNullOrWhiteSpace([string]$group.affects)) {
+                $problems.Add("optionalScopes entry needs 'affects'")
+            }
+            foreach ($entry in @($group.scopes)) { $declared.Add($entry) }
+        }
+    }
+
+    foreach ($entry in $declared) {
+        foreach ($scope in @($entry)) {
+            $readOnly = @(Select-SightlineReadOnlyScope -Scopes @([string]$scope))
             if ($readOnly.Count -eq 0) {
                 $problems.Add("'$scope' is not a read permission and cannot be requested")
             }
@@ -152,9 +180,12 @@ function Test-SightlineManifest {
 
 function Get-SightlineToolAvailability {
     <#
-        A tool is available only if every scope its manifest declares was
-        actually granted. Checked before the run rather than discovered
-        halfway through as a Graph 403.
+        A tool is available only if every required scope was granted (or, for
+        an entry listing alternatives, any one of them). Checked before the
+        run rather than discovered halfway through as a Graph 403.
+
+        Optional scopes never block a tool; each one missing becomes a
+        limitation naming what the run will leave out.
     #>
     param([Parameter(Mandatory)] $Tool)
 
@@ -170,10 +201,26 @@ function Get-SightlineToolAvailability {
         "Needs $($check.Missing -join ', ') — not consented$suffix."
     }
 
+    # Only worth reporting on a tool that can run: a blocked tool's reason
+    # already says what to fix first.
+    $limitations = [System.Collections.Generic.List[object]]::new()
+    if ($check.Satisfied) {
+        foreach ($group in @($Tool.OptionalScopes)) {
+            $optional = Test-SightlineScope -Required @($group.scopes)
+            if (-not $optional.Satisfied) {
+                $limitations.Add([pscustomobject]@{
+                    Affects = [string]$group.affects
+                    Missing = @($optional.Missing)
+                })
+            }
+        }
+    }
+
     [pscustomobject]@{
-        Available = $check.Satisfied
-        Missing   = @($check.Missing)
-        Reason    = $reason
+        Available   = $check.Satisfied
+        Missing     = @($check.Missing)
+        Reason      = $reason
+        Limitations = @($limitations)
     }
 }
 
@@ -268,8 +315,11 @@ function Get-SightlineRequiredScopes {
     $scopes = [System.Collections.Generic.List[string]]::new()
 
     foreach ($tool in @(Get-SightlineTools -ToolsRoot $ToolsRoot)) {
-        foreach ($scope in @($tool.RequiredScopes)) {
-            if ($scope -and $scopes -notcontains $scope) { $scopes.Add($scope) }
+        $entries = @($tool.RequiredScopes) + @(@($tool.OptionalScopes) | ForEach-Object { @($_.scopes) })
+        foreach ($entry in $entries) {
+            foreach ($scope in @($entry)) {
+                if ($scope -and $scopes -notcontains [string]$scope) { $scopes.Add([string]$scope) }
+            }
         }
     }
 

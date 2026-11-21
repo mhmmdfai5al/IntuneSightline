@@ -4,11 +4,34 @@
   "description": "Who changed what and when, from the Intune audit log. Includes deletions and renames.",
   "note": "Intune's audit API can only filter on date and activity type. A policy or account filter is applied after collection, so the run time is set by how many events happened in the window, not by how many match. A large tenant can produce well over 100,000 events in a week, and reading them takes minutes. Narrow the dates or set an activity type to make it faster.",
   "category": "Audit",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "entryPoint": "Invoke-Tool.ps1",
   "requiredScopes": [
-    "DeviceManagementApps.Read.All",
-    "DeviceManagementConfiguration.Read.All"
+    "DeviceManagementApps.Read.All"
+  ],
+  "optionalScopes": [
+    {
+      "scopes": [
+        "DeviceManagementRBAC.Read.All",
+        [
+          "GroupMember.Read.All",
+          "Group.Read.All",
+          "User.Read.All",
+          "Directory.Read.All"
+        ]
+      ],
+      "affects": "current roles"
+    },
+    {
+      "scopes": [
+        [
+          "User.ReadBasic.All",
+          "User.Read.All",
+          "Directory.Read.All"
+        ]
+      ],
+      "affects": "account filter"
+    }
   ],
   "fields": [
     {

@@ -5,11 +5,14 @@
   "note": "Upload a CSV of device names or serial numbers - one per row, the template below shows the expected shape. The output is ready to upload directly into Entra's own Bulk operations > Import members feature on a group's Members page - same column header, same format, nothing to reformat. A second file lists anything that couldn't be matched, so nothing silently goes missing. The uploaded file is deleted once the run finishes, since it may contain device or user information.",
   "category": "Assignments",
   "order": 3,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "entryPoint": "Invoke-Tool.ps1",
   "requiredScopes": [
     "DeviceManagementManagedDevices.Read.All",
-    "Directory.Read.All"
+    [
+      "Device.Read.All",
+      "Directory.Read.All"
+    ]
   ],
   "fields": [
     {

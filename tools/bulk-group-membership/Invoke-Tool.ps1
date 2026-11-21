@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 
 $ToolId      = 'bulk-group-membership'
-$ToolVersion = '1.0.0'
+$ToolVersion = '1.0.1'
 
 # Resolves a list of device names or serial numbers to the Entra Object IDs
 # needed for Entra's own "Bulk operations > Import members" feature on a

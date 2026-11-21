@@ -38,14 +38,23 @@ A tool is a folder containing two files.
   "category": "Hygiene",
   "version": "1.0.0",
   "entryPoint": "Invoke-Tool.ps1",
-  "requiredScopes": ["DeviceManagementConfiguration.Read.All"],
+  "requiredScopes": ["DeviceManagementConfiguration.Read.All", "Group.Read.All"],
+  "optionalScopes": [
+    { "scopes": ["DeviceManagementScripts.Read.All"], "affects": "scripts" }
+  ],
   "fields": [
     { "id": "includeApps", "type": "boolean", "label": "Include apps", "default": false }
   ]
 }
 ```
 
-Field types: `text`, `number`, `boolean`, `path`, `select`, `multiselect`. A `text` field
+A tool missing a required scope is greyed out. A missing optional scope leaves it
+runnable, and the card shows the `affects` text: what the run will leave out. Any entry,
+in either list, can be an array of alternatives — `["Device.Read.All", "Directory.Read.All"]`
+is satisfied by either — because Graph usually accepts several permissions for one call
+and a tenant may have consented any of them.
+
+Field types: `text`, `number`, `boolean`, `path`, `select`, `multiselect`, `file`. A `text` field
 may declare a `pattern` and `patternMessage`; the browser validates as the admin types
 and the server re-checks before running.
 
@@ -76,7 +85,7 @@ contributed by someone who never touches the interface.
 Three independent mechanisms, none of which relies on a tool behaving:
 
 1. Sign-in requests `.default` and drops every write scope from the working set.
-2. A manifest declaring a write permission is rejected when the tool loads.
+2. A manifest declaring a write permission, required or optional, is rejected when the tool loads.
 3. The static checks fail the build if either rule is broken.
 
 There is no code path through which a tool could write, because none exists to call.
@@ -150,8 +159,10 @@ reading than they save.
 **No module dependency.** Microsoft Graph is a REST API; the SDK is one wrapper over it.
 Calling the endpoints directly means nothing to `Install-Module` before a first run.
 
-**No app registration requirement.** Requiring one would exclude scope-tagged and
-delegated admins who cannot create one, and they are exactly who this is for.
+**No client secret, no hosted redirect.** Sign-in uses your own app registration as a
+public client, over a `http://localhost` loopback redirect with PKCE. Permissions come
+from what that registration has been consented, so a scope-tagged or delegated admin
+runs with exactly the access their organisation gave the app.
 
 **No computed conflict analysis.** Intune evaluates conflicts server-side across every
 policy targeting a device, including policies the signed-in admin cannot see. Comparing

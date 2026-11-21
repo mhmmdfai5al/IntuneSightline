@@ -47,6 +47,21 @@ function Invoke-SightlineGraphRequest {
     }
 }
 
+function Get-SightlineErrorSummary {
+    <#
+        Intune admins reading a report know what a 403 means; they don't need
+        a paragraph. The .NET HTTP exception always has the shape "...: 403
+        (Forbidden)." - pull just the code and reason out of it. Anything
+        that doesn't match this exact shape falls back to the message as
+        given, so a genuinely different error is never hidden.
+    #>
+    param([Parameter(Mandatory)] $ErrorRecord)
+
+    $raw   = $ErrorRecord.Exception.Message
+    $short = [regex]::Match($raw, ': (\d{3}) \(([^)]+)\)')
+    if ($short.Success) { "$($short.Groups[1].Value) ($($short.Groups[2].Value))." } else { $raw }
+}
+
 function Get-SightlineGraphCollection {
     <#
         Pages a Graph collection to completion.
@@ -95,14 +110,7 @@ function Get-SightlineGraphCollection {
     catch {
         $complete = $false
 
-        # Intune admins reading this know what a 403 means; they don't need
-        # a paragraph. The .NET HTTP exception always has the shape "...: 403
-        # (Forbidden)." - pull just the code and reason out of it. Anything
-        # that doesn't match this exact shape falls back to the message as
-        # given, so a genuinely different error is never hidden.
-        $raw = $_.Exception.Message
-        $short = [regex]::Match($raw, ': (\d{3}) \(([^)]+)\)')
-        $failure = if ($short.Success) { "$($short.Groups[1].Value) ($($short.Groups[2].Value))." } else { $raw }
+        $failure = Get-SightlineErrorSummary -ErrorRecord $_
 
         # A 400 means the query itself was rejected - usually an unsupported
         # $filter. Callers that offer a simpler fallback need to tell that

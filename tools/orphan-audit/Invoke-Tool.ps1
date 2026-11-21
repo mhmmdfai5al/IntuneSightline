@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 
 $ToolId      = 'orphan-audit'
-$ToolVersion = '1.0.0'
+$ToolVersion = '1.0.1'
 
 function Get-SightlineGroupMemberCount {
     param([Parameter(Mandatory)] [string] $GroupId)

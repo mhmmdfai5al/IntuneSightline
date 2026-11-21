@@ -5,14 +5,36 @@
   "note": "Covers every enrolment route - Automated Device Enrolment, Apple Configurator, direct enrolment, device enrolment manager and Company Portal. A Mac enrolled through Setup Assistant legacy may have no Microsoft Entra device object at all: the report still runs and explains what group-targeted policy cannot reach. Devices managed by app protection policy alone are not enrolled in Intune and are out of scope.",
   "category": "Devices",
   "order": 3,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "entryPoint": "Invoke-Tool.ps1",
   "requiredScopes": [
     "DeviceManagementManagedDevices.Read.All",
     "DeviceManagementServiceConfig.Read.All",
     "DeviceManagementConfiguration.Read.All",
-    "DeviceManagementApps.Read.All",
     "Group.Read.All"
+  ],
+  "optionalScopes": [
+    {
+      "scopes": [
+        [
+          "Device.Read.All",
+          "Directory.Read.All"
+        ]
+      ],
+      "affects": "group membership"
+    },
+    {
+      "scopes": [
+        "DeviceManagementScripts.Read.All"
+      ],
+      "affects": "scripts"
+    },
+    {
+      "scopes": [
+        "DeviceManagementApps.Read.All"
+      ],
+      "affects": "apps"
+    }
   ],
   "fields": [
     {

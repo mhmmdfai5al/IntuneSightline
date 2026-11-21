@@ -7,11 +7,54 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Optional permissions. A manifest can declare `optionalScopes`, each with an
+  `affects` line. A tool missing one still runs; its card says what the run will
+  leave out and which permission adds it back. Only required permissions grey a
+  tool out.
+- Alternative permissions. Any scope entry can list alternatives, satisfied by
+  whichever one the tenant has consented - Graph usually accepts several for the
+  same call.
+- A static check that every PowerShell file parses. The existing checks read text
+  and passed over a file the parser rejects.
+
 ### Changed
+- Every manifest now declares every permission its tool uses. Device journeys:
+  scripts, apps and Entra device objects are optional (`Device.Read.All` or
+  `Directory.Read.All`). Assignment inventory and Orphaned and unassigned: scripts and
+  apps optional. Recover scripts needs either `DeviceManagementScripts.Read.All` or
+  `DeviceManagementApps.Read.All`, no longer `DeviceManagementConfiguration.Read.All`,
+  which it never used. Change history needs only `DeviceManagementApps.Read.All`; roles
+  and the account filter are optional. Bulk group membership export accepts
+  `Device.Read.All` in place of `Directory.Read.All`.
+- A setup guide, `SETUP.md`: installing PowerShell 7, the app registration
+  with its `http://localhost` redirect URI (without it sign-in fails with
+  AADSTS500113), permissions, admin consent and who can grant it, the Intune role the
+  signed-in account needs, and a table of sign-in errors with their fixes. The README
+  links to it.
+- Architecture doc no longer claims no app registration is needed.
+- README permissions table says what happens when each permission is missing, and
+  names `Device.Read.All` as the least privileged option for device objects.
 - CI actions moved to Node 24 releases - `actions/checkout@v6` and
   `softprops/action-gh-release@v3`. GitHub removed Node 20 from Actions runners in
   September 2026; the old versions only kept working because runners forced them onto
   Node 24, which is what the deprecation warning on every run was reporting.
+
+### Fixed
+- The update banner offered any release whose version differed from the running one,
+  so a newer build was told to "update" to an older release. It now appears only when
+  the latest release is newer.
+- Change history did not load: a duplicated function header stopped the file
+  parsing. Present since 1.0.0.
+- Device journeys said "Not a member of any group" when membership could not be
+  read. They now say "Group membership could not be read : 403 (Forbidden)." and the
+  coverage table marks that source incomplete instead of complete.
+- Device journeys dropped a device from the report when its Entra object could not
+  be read. The device now appears, without groups.
+- Change history left a user's role blank when their group membership could not be
+  read - the same as holding no role. It now shows "could not be read : 403
+  (Forbidden)."
+- Change history checked the account filter twice.
 
 ## [1.2.0] - 2026-11-16
 

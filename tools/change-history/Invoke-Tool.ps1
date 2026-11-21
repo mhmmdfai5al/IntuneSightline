@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 
 $ToolId      = 'change-history'
-$ToolVersion = '1.4.0'
+$ToolVersion = '1.4.1'
 
 function Get-SightlineRoleGroupMap {
     <#
@@ -68,12 +68,13 @@ function Get-SightlineActorRoles {
         [Parameter(Mandatory)] [hashtable] $RoleGroupMap
     )
 
-    try {
-        $groups = Get-SightlineGraphCollection `
-            -Uri "https://graph.microsoft.com/v1.0/users/$UserId/transitiveMemberOf/microsoft.graph.group?`$select=id"
-    }
-    catch {
-        return @()
+    $groups = Get-SightlineGraphCollection `
+        -Uri "https://graph.microsoft.com/v1.0/users/$UserId/transitiveMemberOf/microsoft.graph.group?`$select=id"
+
+    # A membership read that failed must not look like "holds no role" -
+    # that is a confident wrong answer about someone's access.
+    if (-not $groups.Complete) {
+        return [pscustomobject]@{ Roles = @(); Failure = $groups.Failure }
     }
 
     $roles = @()
@@ -86,7 +87,7 @@ function Get-SightlineActorRoles {
         }
     }
 
-    return @($roles)
+    return [pscustomobject]@{ Roles = @($roles); Failure = $null }
 }
 
 function Get-SightlineActivityTypes {
@@ -121,7 +122,7 @@ function Get-SightlineActivityTypes {
     return [pscustomobject]@{ Types = @($all); Complete = $true; Failure = $null }
 }
 
-function Resolve-SightlineUpn {function Resolve-SightlineUpn {
+function Resolve-SightlineUpn {
     <#
         Confirms the account exists before scanning audit events.
 
@@ -185,12 +186,6 @@ function Invoke-Tool {
     $rows     = [System.Collections.Generic.List[object]]::new()
     $coverage = [System.Collections.Generic.List[object]]::new()
     $warnings = [System.Collections.Generic.List[string]]::new()
-
-    $actorAccount = $null
-    if ($upnFilter) {
-        & $ReportProgress 2 'Checking the account exists'
-        $actorAccount = Resolve-SightlineUpn -Upn $upnFilter
-    }
 
     $since = $fromDate.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
     $until = $toDate.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -399,10 +394,17 @@ function Invoke-Tool {
         $toResolve = @($actorIds | Select-Object -First $cap)
 
         $done = 0
+        $unreadable = 0
         foreach ($actorId in $toResolve) {
             $done++
             & $ReportProgress 80 "Resolving role $done of $($toResolve.Count)"
-            $actorRoles[$actorId] = (@(Get-SightlineActorRoles -UserId $actorId -RoleGroupMap $roleGroupMap) -join '; ')
+            $lookup = Get-SightlineActorRoles -UserId $actorId -RoleGroupMap $roleGroupMap
+            $actorRoles[$actorId] = if ($lookup.Failure) {
+                $unreadable++
+                "could not be read : $($lookup.Failure)"
+            } else {
+                (@($lookup.Roles) -join '; ')
+            }
         }
 
         foreach ($row in $rows) {
@@ -418,6 +420,9 @@ function Invoke-Tool {
         $unresolved = @($actorRoles.Values | Where-Object { -not $_ }).Count
         if ($unresolved -gt 0) {
             $warnings.Add("$unresolved actor(s) hold no Intune role through a group. They may act through Entra directory roles, which are not read here.")
+        }
+        if ($unreadable -gt 0) {
+            $warnings.Add("$unreadable actor(s): group membership could not be read, so their role is unknown.")
         }
     }
 

@@ -180,6 +180,9 @@ function Invoke-SightlineRoute {
                     available      = $availability.Available
                     missingScopes  = $availability.Missing
                     unavailableWhy = $availability.Reason
+                    limitations    = @($availability.Limitations | ForEach-Object {
+                        @{ affects = $_.Affects; missing = @($_.Missing) }
+                    })
                     id             = $_.Id
                     name           = $_.Name
                     description    = $_.Description
@@ -441,8 +444,9 @@ function Start-SightlineUpdateCheck {
         never touches disk or installs anything - Phase 1 is notice only.
 
         Runs in its own runspace so a slow or absent network cannot delay the
-        page. Comparison is by tag string equality: version numbers here are
-        plain x.y.z, so a straight mismatch is enough without a semver parser.
+        page. Only a newer release is reported: a build ahead of the latest
+        release (unreleased work, or a release candidate) must not be told
+        to "update" backwards. A tag that does not parse as x.y.z is ignored.
     #>
     param([Parameter(Mandatory)] [string] $CurrentVersion)
 
@@ -462,7 +466,10 @@ function Start-SightlineUpdateCheck {
                 -Headers $headers -TimeoutSec 5
 
             $tag = ([string]$release.tag_name).TrimStart('v')
-            if ($tag -and $tag -ne $Current) {
+            $latest = $null; $running = $null
+            if ([version]::TryParse($tag, [ref]$latest) -and
+                [version]::TryParse($Current, [ref]$running) -and
+                $latest -gt $running) {
                 return @{ Available = $true; Latest = $tag; Url = [string]$release.html_url }
             }
             return @{ Available = $false }

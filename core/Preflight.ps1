@@ -146,20 +146,27 @@ function Write-SightlineScopeReport {
     }
     Write-Host ''
 
-    $available = [System.Collections.Generic.List[string]]::new()
+    $available = [System.Collections.Generic.List[object]]::new()
     $blocked   = [System.Collections.Generic.List[object]]::new()
 
     foreach ($tool in $Tools) {
         $availability = Get-SightlineToolAvailability -Tool $tool
         if ($availability.Available) {
-            $available.Add($tool.Name)
+            $left = @($availability.Limitations | ForEach-Object { $_.Affects })
+            $available.Add([pscustomobject]@{ Name = $tool.Name; Leaves = $left })
         } else {
             $blocked.Add([pscustomobject]@{ Name = $tool.Name; Missing = @($availability.Missing) })
         }
     }
 
     Write-Host "Tools  ·  $($available.Count) available, $($blocked.Count) blocked" -ForegroundColor White
-    foreach ($name in $available) { Write-Host "  ok    $name" -ForegroundColor Green }
+    foreach ($item in $available) {
+        if ($item.Leaves.Count -eq 0) {
+            Write-Host "  ok    $($item.Name)" -ForegroundColor Green
+        } else {
+            Write-Host ("  ok    {0}  (leaves out {1})" -f $item.Name, ($item.Leaves -join '; ')) -ForegroundColor DarkYellow
+        }
+    }
     foreach ($item in $blocked) {
         Write-Host ("  --    {0}  (needs {1})" -f $item.Name, ($item.Missing -join ', ')) -ForegroundColor Yellow
     }

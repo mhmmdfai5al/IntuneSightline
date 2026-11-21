@@ -40,15 +40,15 @@ function Get-SightlinePolicySurfaces {
 
         @{ Kind = 'Remediation script'; Label = 'deviceManagement/deviceHealthScripts'
            Uri = "$base/deviceManagement/deviceHealthScripts"
-           NameField = 'displayName'; Scope = 'DeviceManagementConfiguration.Read.All' },
+           NameField = 'displayName'; Scope = 'DeviceManagementScripts.Read.All' },
 
         @{ Kind = 'Platform script'; Label = 'deviceManagement/deviceManagementScripts'
            Uri = "$base/deviceManagement/deviceManagementScripts"
-           NameField = 'displayName'; Scope = 'DeviceManagementConfiguration.Read.All' },
+           NameField = 'displayName'; Scope = 'DeviceManagementScripts.Read.All' },
 
         @{ Kind = 'macOS shell script'; Label = 'deviceManagement/deviceShellScripts'
            Uri = "$base/deviceManagement/deviceShellScripts"
-           NameField = 'displayName'; Scope = 'DeviceManagementConfiguration.Read.All' },
+           NameField = 'displayName'; Scope = 'DeviceManagementScripts.Read.All' },
 
         @{ Kind = 'Windows update ring'; Label = 'deviceManagement/windowsUpdateForBusinessConfigurations'
            Uri = "$base/deviceManagement/deviceConfigurations?`$filter=isof('microsoft.graph.windowsUpdateForBusinessConfiguration')"

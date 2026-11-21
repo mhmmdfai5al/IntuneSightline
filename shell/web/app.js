@@ -357,6 +357,17 @@ function renderTool(tool, options) {
     return row;
   }
 
+  // Runs, but without something an optional permission would have added.
+  // Shown on the card itself so it is seen before the run, not after.
+  const limits = (tool.limitations || []).map(l =>
+    l.affects + ' (' + (l.missing || []).join(', ') + ')');
+  let limited = null;
+  if (limits.length) {
+    limited = document.createElement('p');
+    limited.className = 'limited';
+    limited.textContent = 'Leaves out ' + limits.join(', ') + '.';
+  }
+
   if (tool.note) {
     const note = document.createElement('p');
     note.className = 'tool-note';
@@ -428,7 +439,7 @@ function renderTool(tool, options) {
     }
   });
 
-  row.append(head, body);
+  row.append(...[head, limited, body].filter(Boolean));
   return row;
 }
 

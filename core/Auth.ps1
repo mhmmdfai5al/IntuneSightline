@@ -336,14 +336,28 @@ function Update-SightlineGrantedScopes {
 }
 
 function Test-SightlineScope {
-    param([Parameter(Mandatory)] [string[]] $Required)
+    <#
+        Each entry is either one scope, or an array of alternatives where any
+        one granted is enough - Graph usually accepts several permissions for
+        the same call, and the least privileged one is not always the one a
+        tenant has consented.
+    #>
+    param([Parameter(Mandatory)] [AllowEmptyCollection()] [object[]] $Required)
 
     $granted = @(Get-SightlineGrantedScopes)
-    $missing = @($Required | Where-Object { $_ -notin $granted })
+    $missing = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($entry in $Required) {
+        $options = @($entry | ForEach-Object { [string]$_ } | Where-Object { $_ })
+        if ($options.Count -eq 0) { continue }
+        if (@($options | Where-Object { $_ -in $granted }).Count -eq 0) {
+            $missing.Add($options -join ' or ')
+        }
+    }
 
     [pscustomobject]@{
         Satisfied = ($missing.Count -eq 0)
-        Missing   = $missing
+        Missing   = @($missing)
     }
 }
 

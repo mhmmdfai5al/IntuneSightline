@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 
 $ToolId      = 'assignment-inventory'
-$ToolVersion = '1.0.0'
+$ToolVersion = '1.0.1'
 
 function Invoke-Tool {
     param(

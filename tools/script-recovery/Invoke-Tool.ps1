@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 
 $ToolId      = 'script-recovery'
-$ToolVersion = '1.0.0'
+$ToolVersion = '1.0.1'
 
 function Get-SafeName {
     param([string] $Name, [string] $Fallback = 'unnamed')

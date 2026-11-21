@@ -3,11 +3,25 @@
   "name": "Assignment inventory",
   "description": "One row per assignment: what targets what, across the whole tenant.",
   "category": "Assignments",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "entryPoint": "Invoke-Tool.ps1",
   "requiredScopes": [
     "DeviceManagementConfiguration.Read.All",
     "Group.Read.All"
+  ],
+  "optionalScopes": [
+    {
+      "scopes": [
+        "DeviceManagementScripts.Read.All"
+      ],
+      "affects": "scripts"
+    },
+    {
+      "scopes": [
+        "DeviceManagementApps.Read.All"
+      ],
+      "affects": "apps"
+    }
   ],
   "fields": [
     {

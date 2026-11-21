@@ -32,8 +32,8 @@ Get-ChildItem -Recurse | Unblock-File
 ```
 
 A preflight check runs, then a page opens at `127.0.0.1:8787`. Enter your tenant ID and
-the application ID of a registration with the permissions listed under
-[Prerequisites](#prerequisites), press Connect, and sign in. Both values are remembered.
+the application ID of the registration set up in the
+[setup guide](SETUP.md), press Connect, and sign in. Both values are remembered.
 
 ## The problem
 
@@ -114,36 +114,50 @@ See [docs/architecture.md](docs/architecture.md) for the tool contract and the r
 
 - PowerShell 7.0 or later. Tested on Windows and macOS; nothing in it is Windows-specific.
 - An Intune-licensed tenant.
-- An Entra app registration, with the delegated Microsoft Graph permissions below granted
-  admin consent. All are read-only.
+- An Entra app registration in your tenant, set up as below. The app has no shared
+  registration of its own: permissions are consented to an application, so each tenant
+  uses its own.
 
-| Permission | Used for |
-|---|---|
-| `User.Read` | Your sign-in identity and the tenant name shown in every export |
-| `DeviceManagementManagedDevices.Read.All` | Finding devices by name or serial |
-| `DeviceManagementConfiguration.Read.All` | Policies, compliance, profiles and their assignments |
-| `DeviceManagementServiceConfig.Read.All` | Autopilot, ADE, enrolment profiles, enrolment and VPP tokens |
-| `DeviceManagementApps.Read.All` | Apps, app assignments, the audit log |
-| `DeviceManagementScripts.Read.All` | Remediation, platform and macOS shell scripts |
-| `DeviceManagementRBAC.Read.All` | Resolving Intune roles in Change history (on by default) |
-| `Group.Read.All` | Group names, membership and nesting |
-| `Directory.Read.All` | Entra device objects, registered owners, Object IDs for bulk membership, the app registration's name |
-| `User.ReadBasic.All` | User lookup in Change history |
+| Permission | Used for | If not granted |
+|---|---|---|
+| `User.Read` | Your sign-in identity and the tenant name shown in every export | Sign-in fails |
+| `DeviceManagementManagedDevices.Read.All` | Finding devices by name or serial | Device journeys and Bulk group membership export greyed out |
+| `DeviceManagementConfiguration.Read.All` | Policies, compliance, profiles and their assignments | Device journeys, Assignment inventory and Orphaned and unassigned greyed out |
+| `DeviceManagementServiceConfig.Read.All` | Autopilot, ADE, enrolment profiles, enrolment and VPP tokens | Device journeys greyed out |
+| `DeviceManagementApps.Read.All` | Apps, app assignments, Win32 app scripts, the audit log | Change history greyed out; elsewhere apps are left out |
+| `DeviceManagementScripts.Read.All` | Remediation, platform and macOS shell scripts | Scripts and remediations left out |
+| `DeviceManagementRBAC.Read.All` | Current Intune roles in Change history | Role column left out |
+| `Group.Read.All` | Group names, membership and nesting | Device journeys, Assignment inventory and Orphaned and unassigned greyed out |
+| `Device.Read.All` or `Directory.Read.All` | Entra device objects: journey group membership, registered owners, Object IDs for bulk membership | Bulk group membership export greyed out; journeys leave out group membership |
+| `User.ReadBasic.All` | The account filter in Change history | Account filter left out |
 
-With all ten granted, no tool hits a permission gap. With fewer, the app still runs with
-whatever is consented; a missing permission shows either as a greyed-out tool or as an
-incomplete source in that report's coverage table.
+`Device.Read.All` is the least privileged choice. `Directory.Read.All` works in its place,
+and also lets the app show the app registration's name rather than its ID.
+
+A tool is greyed out only when it cannot run at all, with the missing permission named.
+Otherwise it stays runnable, and its card says what the run will leave out and which
+permission would add it back. A source that still fails during a run shows as incomplete,
+with its reason, in that report's coverage table.
 
 `DeviceManagementScripts.Read.All` is easy to miss. Microsoft moved the script endpoints
 onto it from `DeviceManagementConfiguration.Read.All` in July 2025, so a registration
 created before then will return `403 (Forbidden)` for scripts until it is added.
 
+## Setting up the app registration
+
+Follow **[SETUP.md](SETUP.md)** — step by step, with a check after
+each part and a fix for every sign-in error we know of. In short: a single-tenant
+registration, the redirect URI `http://localhost` under **Mobile and desktop
+applications**, the delegated permissions above with admin consent granted, and an
+Intune role that can read for the account that signs in.
+
 ## Permissions
 
 Sign-in requests `https://graph.microsoft.com/.default`, which returns exactly the
-permissions your tenant has already consented for that application — no more. A tool
-whose declared permissions are missing is greyed out with the specific permission named,
-rather than failing partway through.
+permissions your tenant has already consented for that application — no more. Each tool
+declares what it needs before it runs: required permissions grey it out with the specific
+permission named, optional ones are listed on its card as what the run will leave out —
+rather than either failing partway through.
 
 Write permissions are dropped from the working set at sign-in and the discarded list is
 printed. See [SECURITY.md](SECURITY.md).

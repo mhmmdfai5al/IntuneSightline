@@ -4,14 +4,36 @@
   "description": "How an iPhone or iPad was enrolled, the groups that resulted, and everything that reaches it.",
   "note": "Covers every enrolment route - Automated Device Enrolment, Apple Configurator, device enrolment, user enrolment and Company Portal. Where the device came through ADE, its token and enrolment profile are shown with expiry. VPP token expiry is always shown, because a lapsed token breaks app licensing silently. Devices managed by app protection policy alone are not enrolled in Intune and are out of scope.",
   "category": "Devices",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "entryPoint": "Invoke-Tool.ps1",
   "requiredScopes": [
     "DeviceManagementManagedDevices.Read.All",
     "DeviceManagementServiceConfig.Read.All",
     "DeviceManagementConfiguration.Read.All",
-    "DeviceManagementApps.Read.All",
     "Group.Read.All"
+  ],
+  "optionalScopes": [
+    {
+      "scopes": [
+        [
+          "Device.Read.All",
+          "Directory.Read.All"
+        ]
+      ],
+      "affects": "group membership"
+    },
+    {
+      "scopes": [
+        "DeviceManagementScripts.Read.All"
+      ],
+      "affects": "scripts"
+    },
+    {
+      "scopes": [
+        "DeviceManagementApps.Read.All"
+      ],
+      "affects": "apps"
+    }
   ],
   "fields": [
     {
