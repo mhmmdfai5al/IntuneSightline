@@ -35,7 +35,7 @@ A tool is a folder containing two files.
   "name": "Orphaned and unassigned",
   "description": "Finds policies, scripts and filters that nothing is assigned to.",
   "note": "Shown above the fields when a tool has a cost worth knowing before pressing Run.",
-  "category": "Hygiene",
+  "category": "Assignments",
   "version": "1.0.0",
   "entryPoint": "Invoke-Tool.ps1",
   "requiredScopes": ["DeviceManagementConfiguration.Read.All", "Group.Read.All"],
@@ -146,13 +146,20 @@ it costs one field and restores it by removing that field.
 
 ## Sections are the Intune admin centre's own headings, not the tool's own category
 
-A tool's `category` places it under one of the launch page's section headings —
-Devices, Assignments, Scripts, Audit — and those headings are deliberately the
-navigation labels the Intune admin centre already uses, not a vocabulary this project
-invented. A `terse` section (currently just Devices) additionally hoists its
-description up to the section itself, and shows only a short platform name per row,
-because four descriptions that differ solely in "Windows" versus "Android" cost more
-reading than they save.
+A tool's `category` places it under one of the launch page's sections. The
+category is a key; the page shows the matching Intune admin centre heading:
+
+| `category` | Heading shown |
+|---|---|
+| `Devices` | Devices |
+| `Assignments` | Apps and policies |
+| `Scripts` | Scripts and remediations |
+| `Audit` | Tenant administration |
+
+Any other value lands under **Other**. A `terse` section (currently just Devices)
+additionally hoists its description up to the section itself, and shows only a
+short platform name per row, because four descriptions that differ solely in
+"Windows" versus "Android" cost more reading than they save.
 
 ## What is deliberately not here
 

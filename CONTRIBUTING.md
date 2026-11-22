@@ -6,8 +6,8 @@ manifest needs a new field instead.
 
 ## Adding a tool
 
-Create `tools/<your-id>/` with a `manifest.json` and an `Invoke-Tool.ps1`. The
-README has a worked example.
+Create `tools/<your-id>/` with a `manifest.json` and an `Invoke-Tool.ps1`.
+[docs/architecture.md](docs/architecture.md#the-tool-contract) has a worked example.
 
 ## Rules
 
@@ -20,7 +20,10 @@ README has a worked example.
 1. **Never draw UI.** No WPF, no WinForms, no `Read-Host`. Declare input fields
    in the manifest; the shell renders them. This is what keeps tools working on
    every platform.
-2. **Read-only.** Manifests declaring a write scope are rejected at load.
+2. **Read-only, and declare every permission you call with.** Put it in
+   `requiredScopes` if the tool can't run without it (the tool is greyed out), or
+   `optionalScopes` with an `affects` line if it can (the card says what the run
+   leaves out). Manifests declaring a write scope are rejected at load.
 3. **Report progress through `$ReportProgress`,** not `Write-Host`. Nothing is
    watching the console.
 4. **Write files through core.** Build named datasets and hand them to
@@ -43,6 +46,8 @@ README has a worked example.
    no tool.
 6. **Return `New-SightlineToolResult`.** Never return the data itself - the file
    is the deliverable.
+7. **Keep `$ToolVersion` equal to the manifest's `version`.** The checks fail if
+   they differ.
 
 ## Three PowerShell traps worth knowing
 

@@ -13,12 +13,15 @@ body:
     attributes:
       label: Which tool
       options:
+        - Windows device journey
+        - iOS/iPadOS device journey
+        - macOS device journey
+        - Android device journey
         - Assignment inventory
-        - Autopilot device journey
-        - Change history
-        - Device 360
         - Orphaned and unassigned
+        - Bulk group membership export
         - Recover scripts
+        - Change history
         - Sign-in or the page itself
     validations:
       required: true
@@ -29,7 +32,7 @@ body:
       label: The failure message in full
       description: >
         Copy it exactly. It carries the file and line number, which is usually
-        enough on its own.
+        enough on its own. For a sign-in error, include the AADSTS code.
       render: text
     validations:
       required: true
@@ -49,15 +52,16 @@ body:
     attributes:
       label: The coverage block from the export
       description: >
-        From sheet one of the workbook, or _provenance.txt. Redact anything you
-        need to - the source names and whether each was complete is what matters.
+        From sheet one of the workbook, _provenance.txt, or the coverage section
+        of an HTML report. Redact anything you need to - the source names and
+        whether each was complete is what matters.
       render: text
 
   - type: input
     id: version
     attributes:
       label: Version
-      placeholder: v0.9.0, or the commit you are on
+      placeholder: v1.3.0, shown next to the app name at the top of the page
     validations:
       required: true
 

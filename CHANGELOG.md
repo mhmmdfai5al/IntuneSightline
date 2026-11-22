@@ -27,14 +27,17 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   which it never used. Change history needs only `DeviceManagementApps.Read.All`; roles
   and the account filter are optional. Bulk group membership export accepts
   `Device.Read.All` in place of `Directory.Read.All`.
-- A setup guide, `SETUP.md`: installing PowerShell 7, the app registration
-  with its `http://localhost` redirect URI (without it sign-in fails with
-  AADSTS500113), permissions, admin consent and who can grant it, the Intune role the
-  signed-in account needs, and a table of sign-in errors with their fixes. The README
-  links to it.
-- Architecture doc no longer claims no app registration is needed.
-- README permissions table says what happens when each permission is missing, and
-  names `Device.Read.All` as the least privileged option for device objects.
+- Setup documentation matches the code. New `SETUP.md` covers the app registration,
+  its `http://localhost` redirect URI, consent, and the sign-in errors with their
+  fixes. The README gains a Quick start, a permissions-by-tool table, the Intune role
+  the signed-in account needs, and where reports go.
+- `SECURITY.md` corrected: batched reads travel as a POST to `$batch`; the update
+  check calls `api.github.com`; write permissions are listed on the page, not in the
+  terminal; provenance is on a workbook's first sheet, not always `_provenance.txt`.
+- `CONTRIBUTING.md` and the architecture doc corrected: the worked example's
+  location, declaring every permission, the version rule, and the section headings.
+- Bug report template lists the current tools.
+- The release zip now includes `docs/`, so the README's images and links work.
 - CI actions moved to Node 24 releases - `actions/checkout@v6` and
   `softprops/action-gh-release@v3`. GitHub removed Node 20 from Actions runners in
   September 2026; the old versions only kept working because runners forced them onto
@@ -55,6 +58,8 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   read - the same as holding no role. It now shows "could not be read : 403
   (Forbidden)."
 - Change history checked the account filter twice.
+- An uploaded CSV that was never run stayed on disk. Leftover uploads are now cleared
+  each time the app starts.
 
 ## [1.2.0] - 2026-11-16
 

@@ -18,22 +18,25 @@ Sample output is in [`docs/samples`](docs/samples) - fabricated data, a fictiona
 tenant, nothing real. Open one to see the shape of the output before running anything
 against your own tenant.
 
-Download the latest zip from [Releases](../../releases/latest), extract it, and run:
+## Quick start
 
-```powershell
-./Start-IntuneSightline.ps1
-```
+1. **Install [PowerShell 7](https://aka.ms/powershell-release?tag=stable).** Windows
+   PowerShell 5.1, the version built into Windows, will not run it.
+2. **Set up an app registration in your tenant**, once, by following
+   [SETUP.md](SETUP.md). The app has no registration of its own; it uses yours, with
+   read-only permissions.
+3. **Download** `IntuneSightline-v….zip` from [Releases](../../releases/latest) and
+   extract it.
+4. **Start it.** Open a terminal in the extracted folder and run:
 
-On Windows, files extracted from a downloaded zip are marked as coming from the internet
-and PowerShell will refuse to run them. Unblock them once, from the extracted folder:
+   ```powershell
+   pwsh
+   Get-ChildItem -Recurse | Unblock-File    # Windows only, first run only
+   ./Start-IntuneSightline.ps1
+   ```
 
-```powershell
-Get-ChildItem -Recurse | Unblock-File
-```
-
-A preflight check runs, then a page opens at `127.0.0.1:8787`. Enter your tenant ID and
-the application ID of the registration set up in the
-[setup guide](SETUP.md), press Connect, and sign in. Both values are remembered.
+5. **Connect.** A page opens at `127.0.0.1:8787`. Enter the tenant ID and application
+   ID from step 2, press Connect, and sign in. Both values are remembered.
 
 ## The problem
 
@@ -112,55 +115,58 @@ See [docs/architecture.md](docs/architecture.md) for the tool contract and the r
 
 ## Prerequisites
 
-- PowerShell 7.0 or later. Tested on Windows and macOS; nothing in it is Windows-specific.
-- An Intune-licensed tenant.
-- An Entra app registration in your tenant, set up as below. The app has no shared
-  registration of its own: permissions are consented to an application, so each tenant
-  uses its own.
+- **PowerShell 7.0 or later**, on Windows or macOS.
+- **An Intune-licensed tenant.** The Intune Graph API refuses calls without one.
+- **An app registration in your tenant**, with the delegated permissions below and admin
+  consent granted. [SETUP.md](SETUP.md) walks through it.
+- **An Intune role that can read** for the account that signs in, such as Read Only
+  Operator, or the Intune Administrator role in Entra. Reports only show what that role
+  and its scope tags allow.
 
-| Permission | Used for | If not granted |
-|---|---|---|
-| `User.Read` | Your sign-in identity and the tenant name shown in every export | Sign-in fails |
-| `DeviceManagementManagedDevices.Read.All` | Finding devices by name or serial | Device journeys and Bulk group membership export greyed out |
-| `DeviceManagementConfiguration.Read.All` | Policies, compliance, profiles and their assignments | Device journeys, Assignment inventory and Orphaned and unassigned greyed out |
-| `DeviceManagementServiceConfig.Read.All` | Autopilot, ADE, enrolment profiles, enrolment and VPP tokens | Device journeys greyed out |
-| `DeviceManagementApps.Read.All` | Apps, app assignments, Win32 app scripts, the audit log | Change history greyed out; elsewhere apps are left out |
-| `DeviceManagementScripts.Read.All` | Remediation, platform and macOS shell scripts | Scripts and remediations left out |
-| `DeviceManagementRBAC.Read.All` | Current Intune roles in Change history | Role column left out |
-| `Group.Read.All` | Group names, membership and nesting | Device journeys, Assignment inventory and Orphaned and unassigned greyed out |
-| `Device.Read.All` or `Directory.Read.All` | Entra device objects: journey group membership, registered owners, Object IDs for bulk membership | Bulk group membership export greyed out; journeys leave out group membership |
-| `User.ReadBasic.All` | The account filter in Change history | Account filter left out |
+| Permission | Device journeys | Inventory and Orphaned | Recover scripts | Change history | Bulk export |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| `DeviceManagementManagedDevices.Read.All` | ● | | | | ● |
+| `DeviceManagementConfiguration.Read.All` | ● | ● | | | |
+| `DeviceManagementServiceConfig.Read.All` | ● | | | | |
+| `DeviceManagementApps.Read.All` | ○ | ○ | *either* | ● | |
+| `DeviceManagementScripts.Read.All` | ○ | ○ | *either* | | |
+| `DeviceManagementRBAC.Read.All` | | | | ○ | |
+| `Group.Read.All` | ● | ● | | ○ | |
+| `Device.Read.All` ¹ | ○ | | | | ● |
+| `User.ReadBasic.All` | | | | ○ | |
 
-`Device.Read.All` is the least privileged choice. `Directory.Read.All` works in its place,
-and also lets the app show the app registration's name rather than its ID.
+● Required — the tool is greyed out without it.  
+○ Optional — the tool runs; its card says what the run leaves out.  
+*either* — one of the two is enough.  
+¹ `Directory.Read.All` works in its place.
 
-A tool is greyed out only when it cannot run at all, with the missing permission named.
-Otherwise it stays runnable, and its card says what the run will leave out and which
-permission would add it back. A source that still fails during a run shows as incomplete,
-with its reason, in that report's coverage table.
+`User.Read`, which every new registration already has, is needed to sign in at all.
 
 `DeviceManagementScripts.Read.All` is easy to miss. Microsoft moved the script endpoints
 onto it from `DeviceManagementConfiguration.Read.All` in July 2025, so a registration
-created before then will return `403 (Forbidden)` for scripts until it is added.
+created before then returns `403 (Forbidden)` for scripts until it is added.
 
-## Setting up the app registration
-
-Follow **[SETUP.md](SETUP.md)** — step by step, with a check after
-each part and a fix for every sign-in error we know of. In short: a single-tenant
-registration, the redirect URI `http://localhost` under **Mobile and desktop
-applications**, the delegated permissions above with admin consent granted, and an
-Intune role that can read for the account that signs in.
-
-## Permissions
+## How permissions are used
 
 Sign-in requests `https://graph.microsoft.com/.default`, which returns exactly the
-permissions your tenant has already consented for that application — no more. Each tool
-declares what it needs before it runs: required permissions grey it out with the specific
-permission named, optional ones are listed on its card as what the run will leave out —
-rather than either failing partway through.
+permissions your tenant has consented for that application, no more.
 
-Write permissions are dropped from the working set at sign-in and the discarded list is
-printed. See [SECURITY.md](SECURITY.md).
+Each tool declares what it needs. A missing **required** permission greys the tool out
+and names the permission. A missing **optional** one leaves the tool runnable, and its
+card says what the run will leave out. A source that still fails during a run shows as
+incomplete, with its reason, in that report's coverage table.
+
+Write permissions are never used. Any the token carries are dropped at sign-in and
+listed on the page once you connect. See [SECURITY.md](SECURITY.md).
+
+## Using it
+
+- **Reports** go to `Documents\IntuneSightline` on Windows and `~/IntuneSightline` on
+  macOS, one folder per run. **Open folder** on the card takes you there.
+- **Switching tenant:** press **Disconnect**, then Connect with the new IDs.
+  Disconnect also forgets the saved ones.
+- **Updating:** when the page shows a newer release, download it and replace the app
+  folder. Reports and settings live outside it and are kept.
 
 ## Known limitations
 
@@ -179,24 +185,23 @@ printed. See [SECURITY.md](SECURITY.md).
 
 ## Checks
 
+For contributors. The `tests` folder is in a clone of the repository, not in the
+release zip.
+
 ```powershell
 ./tests/Invoke-Checks.ps1
 ```
 
-Static checks needing no tenant, run on every push to `main` and every pull request. Each exists because
-something shipped broken.
-
-For functional testing against a real tenant:
+Static checks needing no tenant, run on every push to `main` and every pull request.
+Each exists because something shipped broken.
 
 ```powershell
 ./tests/Invoke-LiveTests.ps1
 ```
 
-Signs in the same way the app does, then runs every production tool across each of its
-options - isolated per tool, in its own runspace, exactly like a live job - and reports
+Signs in the same way the app does, runs every tool across its options, and reports
 pass or fail for each. Asks for one real device per platform; leave any blank to skip
-that platform. Needs a real tenant, so it never runs in CI; run it by hand before a
-release.
+it. Needs a real tenant, so it never runs in CI; run it by hand before a release.
 
 ## Licence
 

@@ -23,6 +23,16 @@ function Start-SightlineServer {
     $script:SightlineVersion = $Version
     $script:SightlineUpdate  = @{ Checked = $false; Latest = $null; Url = $null }
 
+    # An upload is deleted when the run that uses it ends. One uploaded but
+    # never run - or whose run was rejected before the tool started - would
+    # otherwise stay on disk, and it may carry device or user details. Nothing
+    # can be using one before the server starts, so clear them all here.
+    $staging = Join-Path (Get-SightlineOutputRoot) '_uploads'
+    if (Test-Path -LiteralPath $staging) {
+        Get-ChildItem -LiteralPath $staging -File -ErrorAction SilentlyContinue |
+            Remove-Item -Force -ErrorAction SilentlyContinue
+    }
+
     # One background call at startup, never on the request thread. A slow or
     # unreachable GitHub must not delay the page or any tool run - the check
     # fails silently and the banner simply never appears.
