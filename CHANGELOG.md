@@ -7,7 +7,11 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [1.3.2] - 2026-11-22
+### Changed
+- README screenshots show the current version and all nine tools, made from
+  fictional tenant data.
+
+## [1.3.2] - 2026-11-24
 
 Corrects the version number 1.3.1 shipped with.
 
