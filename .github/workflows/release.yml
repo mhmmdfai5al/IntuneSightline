@@ -13,6 +13,22 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # A published release can't be changed or re-tagged, so a tag that
+      # disagrees with the code must stop here, before anything is published.
+      - name: Tag matches the app version and changelog
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          app=$(grep -oP "SightlineVersion = '\K[0-9.]+" Start-IntuneSightline.ps1)
+          if [ "$tag" != "$app" ]; then
+            echo "::error::Tag v$tag does not match the app version $app in Start-IntuneSightline.ps1."
+            exit 1
+          fi
+          if ! grep -q "^## \[$tag\] - " CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no dated '## [$tag] - YYYY-MM-DD' section."
+            exit 1
+          fi
+
       - name: Project checks
         shell: pwsh
         run: ./tests/Invoke-Checks.ps1

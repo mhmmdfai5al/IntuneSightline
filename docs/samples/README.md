@@ -1,6 +1,7 @@
 # Sample outputs
 
-One file per tool, showing the real shape of its output. Every value here is
+One file per tool except Bulk group membership export, showing the real shape of
+its output. Every value here is
 fabricated - a fictional tenant ("Northwind Traders"), fictional devices,
 fictional group and policy names. Nothing in this folder came from a real
 Intune tenant.

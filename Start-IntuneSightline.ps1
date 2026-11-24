@@ -25,7 +25,7 @@ $ErrorActionPreference = 'Stop'
 
 # The one place this number is written. The status bar reads it, and the
 # update check compares it against the latest GitHub release.
-$script:SightlineVersion = '1.3.0'
+$script:SightlineVersion = '1.3.2'
 
 $root = $PSScriptRoot
 

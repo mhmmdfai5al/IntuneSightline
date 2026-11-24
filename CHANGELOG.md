@@ -7,6 +7,59 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-11-22
+
+Corrects the version number 1.3.1 shipped with.
+
+### Fixed
+- 1.3.1 reported itself as 1.3.0, at the top of the page and in every export, so its
+  own update banner offered 1.3.1 to people already running it.
+- The Bulk group membership export template began its header with the literal text
+  `\xEF\xBB\xBF` instead of a byte-order mark. Present since 1.2.0.
+- Live tests: Bulk group membership export always failed, because no input file was
+  built for it; a tool the app would grey out was reported as failed rather than
+  skipped with its reason; saved tenant and application IDs were looked for in the
+  wrong folder.
+
+### Changed
+- README: the server listens on loopback, `127.0.0.1` and `localhost`, not
+  `127.0.0.1` alone.
+- Samples are described as covering every tool except Bulk group membership export.
+
+- The release workflow stops before publishing if the tag does not match the app
+  version, or CHANGELOG.md has no dated section for it. Both 1.3.0 and 1.3.1 would
+  have been stopped.
+
+### Removed
+- Two functions in `core/Preflight.ps1` that nothing called.
+
+## [1.3.1] - 2026-11-22
+
+Documentation corrected against the code, and a release zip that includes `docs/`.
+This release reports itself as 1.3.0; 1.3.2 corrects that.
+
+### Changed
+- Setup documentation matches the code. `SETUP.md` covers the app registration, its
+  `http://localhost` redirect URI, consent, and the sign-in errors with their fixes.
+  The README gains a Quick start, a permissions-by-tool table, the Intune role the
+  signed-in account needs, and where reports go.
+- `SECURITY.md` corrected: batched reads travel as a POST to `$batch`; the update
+  check calls `api.github.com`; write permissions are listed on the page, not in the
+  terminal; provenance is on a workbook's first sheet, not always `_provenance.txt`.
+- `CONTRIBUTING.md` and the architecture doc corrected: the worked example's
+  location, declaring every permission, the version rule, and the section headings.
+- Bug report template lists the current tools.
+- The release zip includes `docs/`, so the README's images and links work.
+
+### Fixed
+- An uploaded CSV that was never run stayed on disk. Leftover uploads are now cleared
+  each time the app starts.
+
+## [1.3.0] - 2026-11-21
+
+Tools declare every permission they use, and a missing optional one no longer greys
+a tool out.
+
 ### Added
 - Optional permissions. A manifest can declare `optionalScopes`, each with an
   `affects` line. A tool missing one still runs; its card says what the run will
@@ -27,17 +80,11 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   which it never used. Change history needs only `DeviceManagementApps.Read.All`; roles
   and the account filter are optional. Bulk group membership export accepts
   `Device.Read.All` in place of `Directory.Read.All`.
-- Setup documentation matches the code. New `SETUP.md` covers the app registration,
-  its `http://localhost` redirect URI, consent, and the sign-in errors with their
-  fixes. The README gains a Quick start, a permissions-by-tool table, the Intune role
-  the signed-in account needs, and where reports go.
-- `SECURITY.md` corrected: batched reads travel as a POST to `$batch`; the update
-  check calls `api.github.com`; write permissions are listed on the page, not in the
-  terminal; provenance is on a workbook's first sheet, not always `_provenance.txt`.
-- `CONTRIBUTING.md` and the architecture doc corrected: the worked example's
-  location, declaring every permission, the version rule, and the section headings.
-- Bug report template lists the current tools.
-- The release zip now includes `docs/`, so the README's images and links work.
+- A setup guide, `SETUP.md`, covering the app registration and its
+  `http://localhost` redirect URI; without it sign-in fails with AADSTS500113.
+- Architecture doc no longer claims no app registration is needed.
+- README permissions table says what happens when each permission is missing, and
+  names `Device.Read.All` as the least privileged option for device objects.
 - CI actions moved to Node 24 releases - `actions/checkout@v6` and
   `softprops/action-gh-release@v3`. GitHub removed Node 20 from Actions runners in
   September 2026; the old versions only kept working because runners forced them onto
@@ -58,8 +105,6 @@ project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   read - the same as holding no role. It now shows "could not be read : 403
   (Forbidden)."
 - Change history checked the account filter twice.
-- An uploaded CSV that was never run stayed on disk. Leftover uploads are now cleared
-  each time the app starts.
 
 ## [1.2.0] - 2026-11-16
 

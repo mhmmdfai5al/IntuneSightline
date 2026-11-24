@@ -69,7 +69,8 @@ however many tools there are.
 **It does not write to your tenant.** Every Graph call is a read, and a tool declaring a
 write permission is rejected when it loads.
 
-**It does not listen on the network.** The server binds to `127.0.0.1` only.
+**It does not listen on the network.** The server listens on loopback only (`127.0.0.1`
+and `localhost`).
 
 ## The launch page and the reports both follow the Intune admin centre
 
@@ -201,7 +202,8 @@ Each exists because something shipped broken.
 
 Signs in the same way the app does, runs every tool across its options, and reports
 pass or fail for each. Asks for one real device per platform; leave any blank to skip
-it. Needs a real tenant, so it never runs in CI; run it by hand before a release.
+it. A tool the app would grey out is skipped, with the reason. Needs a real tenant, so
+it never runs in CI; run it by hand before a release.
 
 ## Licence
 

@@ -62,7 +62,8 @@ Write-Host "IntuneSightline live test run" -ForegroundColor Cyan
 Write-Host "Signs in the same way the app itself does, then runs every production tool." -ForegroundColor DarkGray
 Write-Host ''
 
-$configPath = Join-Path $root 'config.json'
+# The app saves its IDs beside the reports, not in the app folder.
+$configPath = Get-SightlineConfigPath
 $saved = if (Test-Path $configPath) { Get-Content -Raw $configPath | ConvertFrom-Json } else { $null }
 
 if (-not $TenantId) {
@@ -266,6 +267,31 @@ Write-Host ''
 Write-Host "Running $($tools.Count) production tool(s)..." -ForegroundColor Cyan
 
 foreach ($tool in $tools) {
+    # A tool the app would grey out is not a failure of that tool - say why it
+    # was skipped instead, the same reason the launch page would show.
+    $availability = Get-SightlineToolAvailability -Tool $tool
+    if (-not $availability.Available) {
+        $results.Add([pscustomobject]@{
+            ToolId = $tool.Id; ToolName = $tool.Name; Case = 'baseline'; Passed = $null
+            Status = 'Skipped'; Message = $availability.Reason; Seconds = 0
+        })
+        Write-Host "  $($tool.Name): skipped ($($availability.Reason))" -ForegroundColor DarkYellow
+        continue
+    }
+
+    # A file field gets a CSV built from the devices given above. The tool
+    # deletes its input when a run ends, so each case writes a fresh one.
+    $fileFields = @(@($tool.Fields) | Where-Object { $_.type -eq 'file' })
+    $givenDevices = @($devicesByPlatform.Values | Where-Object { $_ })
+    if ($fileFields.Count -gt 0 -and $givenDevices.Count -eq 0) {
+        $results.Add([pscustomobject]@{
+            ToolId = $tool.Id; ToolName = $tool.Name; Case = 'baseline'; Passed = $null
+            Status = 'Skipped'; Message = 'No devices given to build its input file.'; Seconds = 0
+        })
+        Write-Host "  $($tool.Name): skipped (no devices given to build its input file)" -ForegroundColor DarkYellow
+        continue
+    }
+
     $platform = $devicePlatformFor[$tool.Id]
     $device   = if ($platform) { $devicesByPlatform[$platform] } else { $null }
 
@@ -283,6 +309,13 @@ foreach ($tool in $tools) {
     Write-Host "  $($tool.Name): $($variations.Count) case(s)" -ForegroundColor Cyan
 
     foreach ($case in $variations) {
+        foreach ($field in $fileFields) {
+            $inputFile = Join-Path ([System.IO.Path]::GetTempPath()) "sightline-live-$([guid]::NewGuid().ToString('N')).csv"
+            $csv = @('Device name or serial number') + $givenDevices
+            [System.IO.File]::WriteAllLines($inputFile, [string[]]$csv, [System.Text.UTF8Encoding]::new($true))
+            $case.Parameters[$field.id] = $inputFile
+        }
+
         Write-Host "    [$($case.Label)]: running..." -NoNewline
         $outcome = Invoke-SightlineLiveTest -Tool $tool -Label $case.Label -Parameters $case.Parameters -AuthContext $authContext -CoreRoot $coreRoot -Expectations $expectations
         $results.Add($outcome)
